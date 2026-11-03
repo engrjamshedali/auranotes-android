@@ -1,0 +1,6 @@
+{
+  "name": "AuraNotes",
+  "description": "Premium Android Notes, Media Vault & Universal Code IDE with full offline functionality, rich text, code execution, and portable backups.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
