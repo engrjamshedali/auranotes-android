@@ -90,7 +90,7 @@ The generated APK will be located at:
 
 ## 👨‍💻 Author
 
-**Jamshed Ali >>jamshedali.me**  
+**Jamshed Ali (https://jamshedali.me)**  
 - 🌐 Website: [jamshedali.me](https://jamshedali.me)  
 - 🏢 Brand: AuraNix Technologies
 
