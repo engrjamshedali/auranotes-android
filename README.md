@@ -1,13 +1,28 @@
 # AuraNotes
 > **Premium Android Notes, Media Vault & Universal Code IDE**  
-> Developed by **AuraNix Technologies**  
-> Platform: Android Phones & Tablets | 100% Offline-First
+> **Author:** Jamshed Ali >> [jamshedali.me](https://jamshedali.me) (`Jamshed Ali >>jamshedali.me`)  
+> **Organization:** AuraNix Technologies  
+> **Platform:** Android Phones & Tablets | 100% Offline-First
 
 ---
 
 ## 🌟 Overview
 
 **AuraNotes** merges the simplicity of **Google Keep**, the structured depth and linking of **Notion & Obsidian**, and the developer versatility of a **Universal Code IDE**. Designed with a refined obsidian glassmorphism aesthetic, soft neon gradients, and responsive layouts, AuraNotes guarantees total privacy and zero-cloud dependency.
+
+---
+
+## 📸 Project Screenshots
+
+| 🏠 Home Dashboard & Vault | 💻 Universal Code Studio |
+| :---: | :---: |
+| ![AuraNotes Home Dashboard](docs/screenshots/home_dashboard.svg) | ![Universal Code Studio](docs/screenshots/code_studio.svg) |
+| *Category filtering, tag search, pinned notes & quick actions* | *Syntax highlighting, line numbers, symbol bar & offline Python execution* |
+
+| ✍️ Rich-Text Editor & Media Vault | 📦 Portable Backup & Restore Wizard |
+| :---: | :---: |
+| ![Rich-Text Editor & Media Vault](docs/screenshots/rich_editor_vault.svg) | ![Backup & Migration Center](docs/screenshots/backup_center.svg) |
+| *Markdown toolbar, voice note recorder, photo & document carousel* | *SHA-256 verified `.auranotes` archive & conflict resolution wizard* |
 
 ---
 
@@ -73,5 +88,13 @@ The generated APK will be located at:
 
 ---
 
+## 👨‍💻 Author
+
+**Jamshed Ali >>jamshedali.me**  
+- 🌐 Website: [jamshedali.me](https://jamshedali.me)  
+- 🏢 Brand: AuraNix Technologies
+
+---
+
 ## 📄 License
-© 2026 AuraNix Technologies. All rights reserved.
+© 2026 Jamshed Ali ([jamshedali.me](https://jamshedali.me)) & AuraNix Technologies. All rights reserved.

@@ -200,6 +200,30 @@ fun SettingsScreen(
                     }
                 }
             }
+
+            // Author & Credits Card
+            item {
+                AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Author & Developer", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        }
+                        Text(
+                            "Jamshed Ali >>jamshedali.me",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            "AuraNix Technologies · Premium Offline Notes, Media Vault & Universal Code IDE",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
         }
     }
 }
