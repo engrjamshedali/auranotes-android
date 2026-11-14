@@ -37,8 +37,13 @@ import com.example.domain.ExecutionResult
 import com.example.ui.components.QuickSymbolBar
 import com.example.ui.components.SyntaxHighlighter
 import com.example.ui.components.WebSandboxView
+import com.example.ui.components.appleSpringClickable
 import com.example.ui.theme.CodeBackground
 import com.example.ui.theme.CodeLineNumber
+import com.example.ui.theme.LocalAuraAccessibility
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -125,9 +130,15 @@ fun CodeStudioScreen(
         codeValue = TextFieldValue(templateCode, TextRange(templateCode.length))
     }
 
+    val a11y = LocalAuraAccessibility.current
+
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                ),
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
@@ -270,38 +281,55 @@ SELECT * FROM developers WHERE aura_points > 900;
             )
         },
         bottomBar = {
-            Column {
-                // Developer Quick Symbol Bar
-                if (selectedTab == 0) {
-                    QuickSymbolBar(onInsertSymbol = { insertSymbol(it) })
-                }
-
-                // Bottom Tabs Bar: Editor, Output, Preview
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 6.dp
-                ) {
-                    NavigationBarItem(
-                        selected = selectedTab == 0,
-                        onClick = { selectedTab = 0 },
-                        icon = { Icon(Icons.Default.Code, contentDescription = null) },
-                        label = { Text("Editor") }
-                    )
-                    NavigationBarItem(
-                        selected = selectedTab == 1,
-                        onClick = { selectedTab = 1 },
-                        icon = { Icon(Icons.Default.Terminal, contentDescription = null) },
-                        label = {
-                            Text(if (executionResult?.status == "ERROR") "Output (Error)" else "Console")
-                        }
-                    )
-                    if (selectedLanguage.lowercase() in listOf("html", "javascript", "js", "htm")) {
-                        NavigationBarItem(
-                            selected = selectedTab == 2,
-                            onClick = { selectedTab = 2 },
-                            icon = { Icon(Icons.Default.Language, contentDescription = null) },
-                            label = { Text("Web Preview") }
+            Surface(
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = if (a11y.reducedTransparency) 0.98f else 0.78f),
+                tonalElevation = 8.dp,
+                shadowElevation = 14.dp,
+                border = BorderStroke(
+                    1.dp,
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.35f),
+                            a11y.accentSecondary.copy(alpha = 0.25f),
+                            Color.White.copy(alpha = 0.10f)
                         )
+                    )
+                )
+            ) {
+                Column(modifier = Modifier.navigationBarsPadding()) {
+                    // Developer Quick Symbol Bar
+                    if (selectedTab == 0) {
+                        QuickSymbolBar(onInsertSymbol = { insertSymbol(it) })
+                    }
+
+                    // Bottom Tabs Bar: Editor, Output, Preview
+                    NavigationBar(
+                        containerColor = Color.Transparent,
+                        tonalElevation = 0.dp
+                    ) {
+                        NavigationBarItem(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            icon = { Icon(Icons.Default.Code, contentDescription = null) },
+                            label = { Text("Editor") }
+                        )
+                        NavigationBarItem(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            icon = { Icon(Icons.Default.Terminal, contentDescription = null) },
+                            label = {
+                                Text(if (executionResult?.status == "ERROR") "Output (Error)" else "Console")
+                            }
+                        )
+                        if (selectedLanguage.lowercase() in listOf("html", "javascript", "js", "htm")) {
+                            NavigationBarItem(
+                                selected = selectedTab == 2,
+                                onClick = { selectedTab = 2 },
+                                icon = { Icon(Icons.Default.Language, contentDescription = null) },
+                                label = { Text("Web Preview") }
+                            )
+                        }
                     }
                 }
             }

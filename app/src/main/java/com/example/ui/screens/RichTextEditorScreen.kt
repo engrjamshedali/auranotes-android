@@ -42,6 +42,10 @@ import com.example.data.local.NoteEntity
 import com.example.data.local.NoteType
 import com.example.ui.components.AudioRecorderDialog
 import com.example.ui.components.AuraGlassCard
+import com.example.ui.components.appleSpringClickable
+import com.example.ui.theme.LocalAuraAccessibility
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.Brush
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -184,9 +188,15 @@ fun RichTextEditorScreen(
         }
     }
 
+    val a11y = LocalAuraAccessibility.current
+
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                ),
                 title = {
                     val cat = categories.find { it.id == selectedCategoryId }
                     Text(
@@ -227,12 +237,24 @@ fun RichTextEditorScreen(
             )
         },
         bottomBar = {
-            // Rich-Text Toolbar & Attachment trigger bar
+            // Floating Apple Liquid Glass Formatting Toolbar
             Surface(
-                tonalElevation = 6.dp,
-                color = MaterialTheme.colorScheme.surface
+                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = if (a11y.reducedTransparency) 0.98f else 0.78f),
+                tonalElevation = 8.dp,
+                shadowElevation = 14.dp,
+                border = BorderStroke(
+                    1.dp,
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.38f),
+                            a11y.accentSecondary.copy(alpha = 0.28f),
+                            Color.White.copy(alpha = 0.10f)
+                        )
+                    )
+                )
             ) {
-                Column {
+                Column(modifier = Modifier.navigationBarsPadding()) {
                     // Find and replace bar (if toggled)
                     AnimatedVisibility(visible = showFindReplace) {
                         Row(

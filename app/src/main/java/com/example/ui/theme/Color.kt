@@ -2,48 +2,60 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Obsidian Aura Dark Palette
-val AuraDarkBackground = Color(0xFF090D16)
-val AuraDarkSurface = Color(0xFF101726)
-val AuraDarkSurfaceVariant = Color(0xFF182238)
-val AuraDarkBorder = Color(0xFF23324F)
+// Apple Liquid Glass — Spatial Dark Palette
+val AuraDarkBackground = Color(0xFF04070F)
+val AuraDarkSurface = Color(0xFF101829)
+val AuraDarkSurfaceElevated = Color(0xFF17223B)
+val AuraDarkSurfaceVariant = Color(0xFF1D2B4A)
+val AuraDarkBorder = Color(0xFF334975)
+val AuraDarkSpecularEdge = Color(0x66FFFFFF) // Bright liquid meniscus highlight
+val AuraDarkSpecularSubtle = Color(0x18FFFFFF)
 
-// Light Palette
-val AuraLightBackground = Color(0xFFF8FAFC)
+// Apple Liquid Glass — Luminous Pearl Light Palette
+val AuraLightBackground = Color(0xFFEEF3FA)
 val AuraLightSurface = Color(0xFFFFFFFF)
-val AuraLightSurfaceVariant = Color(0xFFF1F5F9)
-val AuraLightBorder = Color(0xFFE2E8F0)
+val AuraLightSurfaceElevated = Color(0xFFF8FAFF)
+val AuraLightSurfaceVariant = Color(0xFFE3ECFA)
+val AuraLightBorder = Color(0xFFC5D5EE)
+val AuraLightSpecularEdge = Color(0xE6FFFFFF)
+val AuraLightSpecularSubtle = Color(0x55FFFFFF)
 
-// Accent Variations
-val AccentViolet = Color(0xFF6366F1)
-val AccentVioletGlow = Color(0xFF818CF8)
+// Apple System Liquid Accents (Primary + Refractive Secondary Glow)
+// 0: Apple Liquid Sapphire & Aqua (Signature iOS / macOS Liquid Glass Blue)
+val AccentLiquidBlue = Color(0xFF007AFF)
+val AccentLiquidBlueGlow = Color(0xFF5AC8FA)
 
-val AccentCyan = Color(0xFF06B6D4)
-val AccentCyanGlow = Color(0xFF38BDF8)
+// 1: Apple Spatial Indigo & Ultraviolet
+val AccentViolet = Color(0xFF5856D6)
+val AccentVioletGlow = Color(0xFFBF5AF2)
 
-val AccentEmerald = Color(0xFF10B981)
-val AccentEmeraldGlow = Color(0xFF34D399)
+// 2: Apple Liquid Mint & Emerald
+val AccentEmerald = Color(0xFF00C7BE)
+val AccentEmeraldGlow = Color(0xFF30D158)
 
-val AccentRose = Color(0xFFF43F5E)
-val AccentRoseGlow = Color(0xFFFB7185)
+// 3: Apple Liquid Rose & Coral
+val AccentRose = Color(0xFFFF2D55)
+val AccentRoseGlow = Color(0xFFFF6482)
 
-val AccentAmber = Color(0xFFF59E0B)
-val AccentAmberGlow = Color(0xFFFBBF24)
+// 4: Apple Solar Amber & Gold
+val AccentAmber = Color(0xFFFF9500)
+val AccentAmberGlow = Color(0xFFFFCC00)
 
-// Neutral Text & Indicators
-val TextPrimaryDark = Color(0xFFF8FAFC)
-val TextSecondaryDark = Color(0xFF94A3B8)
-val TextTertiaryDark = Color(0xFF64748B)
+// Vibrancy-Tuned Typography Hierarchy for Liquid Glass
+val TextPrimaryDark = Color(0xFFF8FAFF)
+val TextSecondaryDark = Color(0xFFB4C4DE)
+val TextTertiaryDark = Color(0xFF788BA8)
 
-val TextPrimaryLight = Color(0xFF0F172A)
-val TextSecondaryLight = Color(0xFF475569)
+val TextPrimaryLight = Color(0xFF091121)
+val TextSecondaryLight = Color(0xFF3E506B)
+val TextTertiaryLight = Color(0xFF647691)
 
-// Code Syntax Highlighting Tokens
+// Code Studio Syntax Highlighting Tokens
 val CodeKeyword = Color(0xFFFF7B72)
 val CodeString = Color(0xFFA5D6FF)
 val CodeComment = Color(0xFF8B949E)
 val CodeNumber = Color(0xFF79C0FF)
 val CodeFunction = Color(0xFFD2A8FF)
 val CodeOperator = Color(0xFFFFA657)
-val CodeBackground = Color(0xFF0D1117)
-val CodeLineNumber = Color(0xFF484F58)
+val CodeBackground = Color(0xFF070B14)
+val CodeLineNumber = Color(0xFF4F607D)

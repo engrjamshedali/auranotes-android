@@ -30,6 +30,9 @@ import com.example.domain.BackupManager
 import com.example.domain.RestorePreview
 import com.example.domain.RestoreReport
 import com.example.ui.components.AuraGlassCard
+import com.example.ui.components.AuraScrollEdgeMask
+import com.example.ui.components.appleSpringClickable
+import androidx.compose.ui.draw.clip
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -220,13 +223,41 @@ fun BackupCenterScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
 
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("WEEKLY", "DAILY", "MONTHLY", "OFF").forEach { freq ->
-                                FilterChip(
-                                    selected = backupFrequency == freq,
-                                    onClick = { onSetBackupFrequency(freq) },
-                                    label = { Text(freq) }
-                                )
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(4.dp),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                listOf("WEEKLY", "DAILY", "MONTHLY", "OFF").forEach { freq ->
+                                    val selected = backupFrequency == freq
+                                    Surface(
+                                        shape = RoundedCornerShape(9.dp),
+                                        color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(9.dp))
+                                            .appleSpringClickable(
+                                                pressedScale = 0.95f,
+                                                enableHaptics = true,
+                                                onClick = { onSetBackupFrequency(freq) }
+                                            )
+                                    ) {
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.padding(vertical = 8.dp)
+                                        ) {
+                                            Text(
+                                                text = freq,
+                                                style = MaterialTheme.typography.labelMedium,
+                                                color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -299,11 +330,9 @@ fun BackupCenterScreen(
                 restorePreview = null
             }
         }) {
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp,
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            AuraGlassCard(
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),

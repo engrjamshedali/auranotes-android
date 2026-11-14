@@ -13,11 +13,13 @@ private val Context.dataStore by preferencesDataStore(name = "aura_preferences")
 
 data class AuraUserPreferences(
     val themeMode: String = "DARK", // "DARK", "LIGHT", "SYSTEM"
-    val accentIndex: Int = 0, // 0=Violet, 1=Cyan, 2=Emerald, 3=Rose, 4=Amber
+    val accentIndex: Int = 0, // 0=Indigo/Violet, 1=Ocean Cyan, 2=Emerald, 3=Crimson Rose, 4=Solar Amber
     val editorFontSize: Int = 14,
     val backupFrequency: String = "WEEKLY",
     val backupRetentionCount: Int = 5,
     val reducedMotion: Boolean = false,
+    val reducedTransparency: Boolean = false,
+    val highContrast: Boolean = false,
     val defaultNoteType: String = "RICH_TEXT"
 )
 
@@ -28,6 +30,8 @@ class PreferencesRepository(private val context: Context) {
     private val keyBackupFreq = stringPreferencesKey("backup_freq")
     private val keyBackupRetention = intPreferencesKey("backup_retention")
     private val keyReducedMotion = booleanPreferencesKey("reduced_motion")
+    private val keyReducedTransparency = booleanPreferencesKey("reduced_transparency")
+    private val keyHighContrast = booleanPreferencesKey("high_contrast")
     private val keyDefaultNoteType = stringPreferencesKey("default_note_type")
 
     val preferencesFlow: Flow<AuraUserPreferences> = context.dataStore.data.map { prefs ->
@@ -38,6 +42,8 @@ class PreferencesRepository(private val context: Context) {
             backupFrequency = prefs[keyBackupFreq] ?: "WEEKLY",
             backupRetentionCount = prefs[keyBackupRetention] ?: 5,
             reducedMotion = prefs[keyReducedMotion] ?: false,
+            reducedTransparency = prefs[keyReducedTransparency] ?: false,
+            highContrast = prefs[keyHighContrast] ?: false,
             defaultNoteType = prefs[keyDefaultNoteType] ?: "RICH_TEXT"
         )
     }
@@ -60,6 +66,14 @@ class PreferencesRepository(private val context: Context) {
 
     suspend fun setReducedMotion(enabled: Boolean) {
         context.dataStore.edit { it[keyReducedMotion] = enabled }
+    }
+
+    suspend fun setReducedTransparency(enabled: Boolean) {
+        context.dataStore.edit { it[keyReducedTransparency] = enabled }
+    }
+
+    suspend fun setHighContrast(enabled: Boolean) {
+        context.dataStore.edit { it[keyHighContrast] = enabled }
     }
 
     suspend fun setDefaultNoteType(type: String) {
