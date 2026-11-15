@@ -6,20 +6,20 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -27,22 +27,32 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.example.data.local.AttachmentEntity
 import com.example.ui.components.AuraGlassCard
+import com.example.ui.components.AuraIcon
+import com.example.ui.components.AuraIconContainer
+import com.example.ui.components.AuraIconSize
+import com.example.ui.components.AuraIcons
+import com.example.ui.components.AuraNeuIconButton
 import com.example.ui.components.AuraScrollEdgeMask
 import com.example.ui.components.appleSpringClickable
+import com.example.ui.components.neuRaised
+import com.example.ui.theme.LocalAuraNeumorphicPalette
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaVaultScreen(
     attachments: List<AttachmentEntity>,
+    showDrawerButton: Boolean = true,
+    onOpenDrawer: () -> Unit = {},
     onAddAttachmentUri: (Uri, String?, String?) -> Unit,
     onDeleteAttachment: (String) -> Unit
 ) {
     val context = LocalContext.current
-    var selectedTab by remember { mutableStateOf("ALL") } // ALL, IMAGES, AUDIO, DOCS
+    val neu = LocalAuraNeumorphicPalette.current
+
+    var selectedTab by remember { mutableStateOf("ALL") }
     var currentPlayingPath by remember { mutableStateOf<String?>(null) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
 
@@ -87,9 +97,7 @@ fun MediaVaultScreen(
         }
     }
 
-    val totalBytes = remember(attachments) {
-        attachments.sumOf { it.fileSizeBytes }
-    }
+    val totalBytes = remember(attachments) { attachments.sumOf { it.fileSizeBytes } }
 
     fun playAudio(path: String) {
         try {
@@ -135,7 +143,7 @@ fun MediaVaultScreen(
             .fillMaxSize()
             .statusBarsPadding()
     ) {
-        // Vault Header
+        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -143,109 +151,129 @@ fun MediaVaultScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    "Media Vault",
-                    style = MaterialTheme.typography.headlineLarge
-                )
-                Text(
-                    "Private local storage · ${attachments.size} files · ${(totalBytes / (1024 * 1024.0)).let { String.format(Locale.US, "%.2f MB", it) }}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .appleSpringClickable(
-                            pressedScale = 0.92f,
-                            enableHaptics = true,
-                            onClick = {
-                                photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                            }
-                        )
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Default.AddPhotoAlternate,
-                            contentDescription = "Import Photo",
-                            tint = MaterialTheme.colorScheme.primary
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                if (showDrawerButton) {
+                    AuraNeuIconButton(
+                        onClick = onOpenDrawer,
+                        size = 44.dp,
+                        cornerRadius = 14.dp,
+                        modifier = Modifier.testTag("open_drawer_button")
+                    ) {
+                        AuraIcon(
+                            AuraIcons.Menu,
+                            contentDescription = "Open Navigation Drawer",
+                            size = AuraIconSize.Toolbar
                         )
                     }
+                    Spacer(Modifier.width(10.dp))
                 }
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    border = BorderStroke(0.8.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .appleSpringClickable(
-                            pressedScale = 0.92f,
-                            enableHaptics = true,
-                            onClick = {
-                                docPicker.launch(arrayOf("*/*"))
-                            }
-                        )
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            Icons.Default.AttachFile,
-                            contentDescription = "Import Document",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-            }
-        }
 
-        // Apple Segmented Filter Pills Row
-        LazyRow(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-            contentPadding = PaddingValues(horizontal = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val tabs = listOf(
-                "ALL" to "All Files (${attachments.size})",
-                "IMAGES" to "Photos (${attachments.count { it.mimeType.startsWith("image/") }})",
-                "AUDIO" to "Voice Notes (${attachments.count { it.mimeType.startsWith("audio/") }})",
-                "DOCS" to "Documents (${attachments.count { !it.mimeType.startsWith("image/") && !it.mimeType.startsWith("audio/") }})"
-            )
-
-            items(tabs, key = { it.first }) { (key, label) ->
-                val isSelected = selectedTab == key
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(
-                        1.dp,
-                        if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-                    ),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        .appleSpringClickable(
-                            pressedScale = 0.94f,
-                            enableHaptics = true,
-                            onClick = { selectedTab = key }
-                        )
-                ) {
+                Column {
                     Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
+                        "Media Vault",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        "${attachments.size} files · ${(totalBytes / (1024 * 1024.0)).let { String.format(Locale.US, "%.2f MB", it) }}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                AuraNeuIconButton(
+                    onClick = {
+                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
+                    size = 44.dp,
+                    cornerRadius = 14.dp,
+                    isAccent = true
+                ) {
+                    AuraIcon(
+                        AuraIcons.ImagePlus,
+                        contentDescription = "Import Photo",
+                        size = AuraIconSize.Toolbar,
+                        tint = Color.White
+                    )
+                }
+
+                AuraNeuIconButton(
+                    onClick = { docPicker.launch(arrayOf("*/*")) },
+                    size = 44.dp,
+                    cornerRadius = 14.dp
+                ) {
+                    AuraIcon(
+                        AuraIcons.Paperclip,
+                        contentDescription = "Import Document",
+                        size = AuraIconSize.Toolbar
                     )
                 }
             }
         }
 
-        // Vault list with Scroll Edge Mask
-        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+        // Neumorphic Filter Tabs
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            val tabs = listOf(
+                "ALL" to "All (${attachments.size})",
+                "IMAGES" to "Photos (${attachments.count { it.mimeType.startsWith("image/") }})",
+                "AUDIO" to "Voice (${attachments.count { it.mimeType.startsWith("audio/") }})",
+                "DOCS" to "Docs (${attachments.count { !it.mimeType.startsWith("image/") && !it.mimeType.startsWith("audio/") }})"
+            )
+
+            items(tabs, key = { it.first }) { (key, label) ->
+                val isSelected = selectedTab == key
+                Box(
+                    modifier = Modifier
+                        .then(
+                            if (isSelected) {
+                                Modifier.neuRaised(
+                                    cornerRadius = 14.dp,
+                                    backgroundColor = MaterialTheme.colorScheme.primary,
+                                    shadowOffset = 4.dp,
+                                    blurRadius = 8.dp
+                                )
+                            } else {
+                                Modifier.neuRaised(
+                                    cornerRadius = 14.dp,
+                                    backgroundColor = neu.surface,
+                                    shadowOffset = 3.5.dp,
+                                    blurRadius = 7.dp
+                                )
+                            }
+                        )
+                        .appleSpringClickable(
+                            pressedScale = 0.94f,
+                            enableHaptics = true,
+                            onClick = { selectedTab = key }
+                        )
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
             if (filtered.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -256,19 +284,20 @@ fun MediaVaultScreen(
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.padding(32.dp)
                     ) {
-                        Icon(
-                            Icons.Default.PermMedia,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                        AuraIconContainer(
+                            imageVector = AuraIcons.Images,
+                            containerSize = 84.dp,
+                            iconSize = 36.dp,
+                            cornerRadius = 24.dp
                         )
+                        Spacer(Modifier.height(4.dp))
                         Text(
-                            "Your Media Vault is Empty",
+                            "No Media Files",
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            "Import photos, PDFs, or record voice notes in any document to keep them safe offline.",
+                            "Import photos, documents, or voice memos.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -277,8 +306,8 @@ fun MediaVaultScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 96.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 104.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     items(filtered, key = { it.id }) { att ->
                         AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
@@ -288,35 +317,26 @@ fun MediaVaultScreen(
                                     .padding(14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                // Thumbnail / Icon
                                 if (att.mimeType.startsWith("image/")) {
                                     AsyncImage(
                                         model = File(att.localPath),
                                         contentDescription = att.fileName,
                                         modifier = Modifier
                                             .size(60.dp)
-                                            .clip(RoundedCornerShape(10.dp))
+                                            .clip(RoundedCornerShape(14.dp))
                                     )
                                 } else {
-                                    Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        modifier = Modifier.size(60.dp)
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Icon(
-                                                if (att.mimeType.startsWith("audio/")) Icons.Default.Audiotrack else Icons.Default.Description,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(28.dp)
-                                            )
-                                        }
-                                    }
+                                    AuraIconContainer(
+                                        imageVector = if (att.mimeType.startsWith("audio/")) AuraIcons.AudioLines else AuraIcons.FileText,
+                                        containerSize = 60.dp,
+                                        iconSize = AuraIconSize.Card,
+                                        cornerRadius = 14.dp,
+                                        recessed = true
+                                    )
                                 }
 
                                 Spacer(Modifier.width(14.dp))
 
-                                // File Info
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(
                                         text = att.fileName,
@@ -333,31 +353,41 @@ fun MediaVaultScreen(
                                     Text(
                                         text = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(att.createdAt)),
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
                                     )
                                 }
 
-                                // Actions
-                                Row {
+                                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                                     if (att.mimeType.startsWith("audio/")) {
                                         val isPlaying = currentPlayingPath == att.localPath && mediaPlayer?.isPlaying == true
-                                        IconButton(onClick = { playAudio(att.localPath) }) {
-                                            Icon(
-                                                if (isPlaying) Icons.Default.Stop else Icons.Default.PlayArrow,
+                                        AuraNeuIconButton(
+                                            onClick = { playAudio(att.localPath) },
+                                            size = 38.dp,
+                                            cornerRadius = 11.dp,
+                                            isActive = isPlaying,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        ) {
+                                            AuraIcon(
+                                                if (isPlaying) AuraIcons.Square else AuraIcons.Play,
                                                 contentDescription = "Play Audio",
-                                                tint = MaterialTheme.colorScheme.primary
+                                                size = AuraIconSize.Button
                                             )
                                         }
                                     }
-                                    IconButton(onClick = { shareFile(att) }) {
-                                        Icon(Icons.Default.Share, contentDescription = "Share File")
+                                    AuraNeuIconButton(
+                                        onClick = { shareFile(att) },
+                                        size = 38.dp,
+                                        cornerRadius = 11.dp
+                                    ) {
+                                        AuraIcon(AuraIcons.Share2, contentDescription = "Share File", size = AuraIconSize.Button)
                                     }
-                                    IconButton(onClick = { onDeleteAttachment(att.id) }) {
-                                        Icon(
-                                            Icons.Default.DeleteOutline,
-                                            contentDescription = "Delete File",
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
+                                    AuraNeuIconButton(
+                                        onClick = { onDeleteAttachment(att.id) },
+                                        size = 38.dp,
+                                        cornerRadius = 11.dp,
+                                        tint = MaterialTheme.colorScheme.error
+                                    ) {
+                                        AuraIcon(AuraIcons.Trash2, contentDescription = "Delete File", size = AuraIconSize.Button)
                                     }
                                 }
                             }

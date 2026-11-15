@@ -10,6 +10,7 @@ import com.example.data.local.CategoryDao
 import com.example.data.local.CategoryEntity
 import com.example.data.local.NoteDao
 import com.example.data.local.NoteEntity
+import com.example.data.local.PreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -22,7 +23,9 @@ class NoteRepository(
     private val noteDao: NoteDao,
     private val categoryDao: CategoryDao,
     private val attachmentDao: AttachmentDao,
-    private val backupDao: BackupDao
+    private val backupDao: BackupDao,
+    private val preferencesRepository: PreferencesRepository? = null,
+    private val onLocalDataMutated: (() -> Unit)? = null
 ) {
     val activeNotes: Flow<List<NoteEntity>> = noteDao.getActiveNotes()
     val archivedNotes: Flow<List<NoteEntity>> = noteDao.getArchivedNotes()
@@ -32,6 +35,15 @@ class NoteRepository(
     val allAttachments: Flow<List<AttachmentEntity>> = attachmentDao.getAllAttachments()
     val allBackups: Flow<List<BackupEntity>> = backupDao.getAllBackups()
     val activeNoteCount: Flow<Int> = noteDao.getActiveNoteCount()
+
+    private suspend fun markDataChanged() {
+        try {
+            preferencesRepository?.bumpLocalDataRevision()
+            onLocalDataMutated?.invoke()
+        } catch (_: Exception) {
+            // Never fail a local save if revision/scheduler signaling encounters an issue
+        }
+    }
 
     fun getNotesByCategory(categoryId: String): Flow<List<NoteEntity>> =
         noteDao.getNotesByCategory(categoryId)
@@ -54,6 +66,7 @@ class NoteRepository(
     suspend fun saveNote(note: NoteEntity) {
         withContext(Dispatchers.IO) {
             noteDao.insertNote(note.copy(updatedAt = System.currentTimeMillis()))
+            markDataChanged()
         }
     }
 
@@ -68,6 +81,7 @@ class NoteRepository(
                 updatedAt = now
             )
             noteDao.insertNote(duplicated)
+            markDataChanged()
             newId
         }
     }
@@ -75,30 +89,35 @@ class NoteRepository(
     suspend fun moveToTrash(id: String) {
         withContext(Dispatchers.IO) {
             noteDao.moveToTrash(id)
+            markDataChanged()
         }
     }
 
     suspend fun restoreFromTrash(id: String) {
         withContext(Dispatchers.IO) {
             noteDao.restoreFromTrash(id)
+            markDataChanged()
         }
     }
 
     suspend fun togglePin(id: String, current: Boolean) {
         withContext(Dispatchers.IO) {
             noteDao.setPinned(id, !current)
+            markDataChanged()
         }
     }
 
     suspend fun toggleFavorite(id: String, current: Boolean) {
         withContext(Dispatchers.IO) {
             noteDao.setFavorite(id, !current)
+            markDataChanged()
         }
     }
 
     suspend fun toggleArchive(id: String, current: Boolean) {
         withContext(Dispatchers.IO) {
             noteDao.setArchived(id, !current)
+            markDataChanged()
         }
     }
 
@@ -113,24 +132,28 @@ class NoteRepository(
             }
             attachmentDao.deleteAttachmentsForNote(id)
             noteDao.deleteNotePermanently(id)
+            markDataChanged()
         }
     }
 
     suspend fun emptyTrash() {
         withContext(Dispatchers.IO) {
             noteDao.emptyTrash()
+            markDataChanged()
         }
     }
 
     suspend fun saveCategory(category: CategoryEntity) {
         withContext(Dispatchers.IO) {
             categoryDao.insertCategory(category)
+            markDataChanged()
         }
     }
 
     suspend fun deleteCategory(id: String) {
         withContext(Dispatchers.IO) {
             categoryDao.deleteCategory(id)
+            markDataChanged()
         }
     }
 
@@ -140,7 +163,6 @@ class NoteRepository(
                 val vaultDir = File(context.filesDir, "media_vault")
                 if (!vaultDir.exists()) vaultDir.mkdirs()
 
-                val ext = originalName?.substringAfterLast('.', "") ?: "bin"
                 val attId = "att_" + UUID.randomUUID().toString()
                 val targetFile = File(vaultDir, "${attId}_${originalName ?: "file"}")
 
@@ -161,6 +183,7 @@ class NoteRepository(
                     createdAt = System.currentTimeMillis()
                 )
                 attachmentDao.insertAttachment(attachment)
+                markDataChanged()
                 attachment
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -190,6 +213,7 @@ class NoteRepository(
                     createdAt = System.currentTimeMillis()
                 )
                 attachmentDao.insertAttachment(attachment)
+                markDataChanged()
                 attachment
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -208,6 +232,7 @@ class NoteRepository(
                     if (file.exists()) file.delete()
                 } catch (_: Exception) {}
                 attachmentDao.deleteAttachment(id)
+                markDataChanged()
             }
         }
     }

@@ -74,19 +74,18 @@ abstract class AuraDatabase : RoomDatabase() {
 
                 val welcomeNote = NoteEntity(
                     id = "note_welcome_001",
-                    title = "✨ Welcome to AuraNotes",
+                    title = "Welcome to AuraNotes",
                     content = """
 # Welcome to AuraNotes
-*The Premium Offline Notes, Media Vault & Universal Code IDE*
+*Offline Notes, Media Vault & Code Studio*
 
-AuraNotes combines the simplicity of **Google Keep**, the structured depth of **Notion & Obsidian**, and the power of a developer **Code Studio** into one offline-first Android application.
+AuraNotes combines fast note capture, structured **Markdown**, media storage, and a local **Code Studio** in one private workspace.
 
-### Key Capabilities
-- ✍️ **Universal Notes**: Plain text, rich markdown, interactive checklists, code files, and media attachments.
-- 💻 **Universal Code Studio**: Real execution for Python, interactive sandboxed HTML/JS/CSS live previews, SQLite queries, and 25+ language modes.
-- 🛡️ **Encrypted Media Vault**: Store images, audio voice recordings, documents, and attachments in your device's private storage.
-- 📦 **Portable .auranotes Backups**: Zero-cloud dependency. Export and restore all notes, rich text, categories, and binary attachments to any Android phone effortlessly.
-- 🎨 **Aura Glassmorphism UI**: High-fidelity dark and light themes, customizable radiant accent palettes, and responsive layouts for phones and tablets.
+### Capabilities
+- **Rich Notes & Checklists**: Markdown formatting, tables, tasks, and voice recordings.
+- **Code Studio**: Local Python analytics, sandboxed HTML/JS live previews, SQLite queries, and 20+ language highlighters.
+- **Media Vault**: Store photos, audio memos, and documents safely in private device storage.
+- **Portable Backups**: Export and restore SHA-256 verified `.auranotes` archives across devices without an account.
                     """.trimIndent(),
                     noteType = NoteType.RICH_TEXT.name,
                     categoryId = "cat_personal",
@@ -100,7 +99,7 @@ AuraNotes combines the simplicity of **Google Keep**, the structured depth of **
 
                 val pythonNote = NoteEntity(
                     id = "note_code_python_001",
-                    title = "🐍 Python Analytics & Math Engine",
+                    title = "Python Analytics & Math Engine",
                     content = """
 # Real Offline Python Scripting in AuraNotes
 def calculate_aura_metrics():
@@ -137,7 +136,7 @@ print("Execution Completed with result:", result)
 
                 val webNote = NoteEntity(
                     id = "note_code_web_001",
-                    title = "⚡ Interactive Neon Canvas (HTML/JS)",
+                    title = "Interactive Web Canvas (HTML/JS)",
                     content = """
 <!DOCTYPE html>
 <html>
@@ -229,7 +228,7 @@ print("Execution Completed with result:", result)
 
                 val taskNote = NoteEntity(
                     id = "note_task_001",
-                    title = "📋 Weekly Sprint & Media Vault Check",
+                    title = "Weekly Sprint & Media Vault Check",
                     content = """
 - [x] Configure AuraNotes offline database & schema
 - [x] Implement Universal Code Studio with Python & Web engines

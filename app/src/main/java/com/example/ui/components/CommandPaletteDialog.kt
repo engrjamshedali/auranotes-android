@@ -4,25 +4,23 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.example.ui.theme.LocalAuraAccessibility
+import com.example.ui.theme.LocalAuraNeumorphicPalette
 
 data class PaletteAction(
     val title: String,
@@ -33,11 +31,10 @@ data class PaletteAction(
 )
 
 /**
- * Apple Spotlight-inspired Command Center (§12 Materialize, don't just fade):
- * Animates scale + opacity together using a critically damped spring,
- * with immediate pointer-down response on every command item.
+ * Neumorphic Spotlight Command Center:
+ * Materializes smoothly with spring scale + fade and houses a recessed search well
+ * plus raised command items.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommandPaletteDialog(
     onDismiss: () -> Unit,
@@ -45,6 +42,7 @@ fun CommandPaletteDialog(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     val a11y = LocalAuraAccessibility.current
+    val neu = LocalAuraNeumorphicPalette.current
     var materialized by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -72,44 +70,39 @@ fun CommandPaletteDialog(
     }
 
     Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(24.dp),
-            color = if (a11y.reducedTransparency) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-            tonalElevation = 10.dp,
-            shadowElevation = 16.dp,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(max = 520.dp)
+                .heightIn(max = 530.dp)
                 .graphicsLayer {
                     scaleX = scale
                     scaleY = scale
                     this.alpha = alpha
                 }
+                .neuRaised(
+                    cornerRadius = 26.dp,
+                    backgroundColor = neu.surface,
+                    shadowOffset = 8.dp,
+                    blurRadius = 16.dp
+                )
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            Column(modifier = Modifier.padding(20.dp)) {
                 // Header
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 14.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = RoundedCornerShape(8.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    Icons.Default.Terminal,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                        Spacer(Modifier.width(10.dp))
+                        AuraIconContainer(
+                            imageVector = AuraIcons.Terminal,
+                            containerSize = 40.dp,
+                            iconSize = AuraIconSize.Button,
+                            cornerRadius = 12.dp
+                        )
+                        Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
                                 "Command Center",
@@ -125,27 +118,29 @@ fun CommandPaletteDialog(
                         }
                     }
 
-                    IconButton(
+                    AuraNeuIconButton(
                         onClick = onDismiss,
-                        modifier = Modifier.size(32.dp)
+                        size = 38.dp,
+                        cornerRadius = 12.dp
                     ) {
-                        Icon(
-                            Icons.Default.Close,
+                        AuraIcon(
+                            AuraIcons.X,
                             contentDescription = "Close Command Center",
-                            modifier = Modifier.size(18.dp)
+                            size = AuraIconSize.Button
                         )
                     }
                 }
 
-                // Spotlight Search Input
-                OutlinedTextField(
+                // Recessed Search Well
+                AuraNeuTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search actions, notes, or tools...") },
+                    placeholder = "Search actions, notes, or tools...",
                     leadingIcon = {
-                        Icon(
-                            Icons.Default.Search,
+                        AuraIcon(
+                            AuraIcons.Search,
                             contentDescription = null,
+                            size = AuraIconSize.Input,
                             tint = MaterialTheme.colorScheme.primary
                         )
                     },
@@ -155,25 +150,24 @@ fun CommandPaletteDialog(
                             enter = fadeIn(),
                             exit = fadeOut()
                         ) {
-                            IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Default.Cancel, contentDescription = "Clear search")
+                            IconButton(
+                                onClick = { searchQuery = "" },
+                                modifier = Modifier.size(28.dp)
+                            ) {
+                                AuraIcon(AuraIcons.X, contentDescription = "Clear search", size = AuraIconSize.Small)
                             }
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(14.dp),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                    )
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(Modifier.height(14.dp))
 
                 if (filteredActions.isEmpty()) {
                     Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 32.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -184,69 +178,67 @@ fun CommandPaletteDialog(
                     }
                 } else {
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = PaddingValues(vertical = 4.dp),
                         modifier = Modifier.weight(1f, fill = false)
                     ) {
                         items(filteredActions, key = { it.title }) { action ->
-                            Surface(
-                                shape = RoundedCornerShape(14.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f),
-                                border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)),
+                            Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(14.dp))
+                                    .neuRaised(
+                                        cornerRadius = 16.dp,
+                                        backgroundColor = neu.surface,
+                                        shadowOffset = 4.dp,
+                                        blurRadius = 8.dp
+                                    )
                                     .appleSpringClickable(
-                                        pressedScale = 0.97f,
+                                        pressedScale = 0.98f,
                                         enableHaptics = true,
                                         onClick = {
                                             onDismiss()
                                             action.onExecute()
                                         }
                                     )
+                                    .padding(horizontal = 12.dp, vertical = 11.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                AuraIconContainer(
+                                    imageVector = action.icon,
+                                    containerSize = 38.dp,
+                                    iconSize = AuraIconSize.Button,
+                                    cornerRadius = 11.dp,
+                                    recessed = true
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        action.title,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        action.subtitle,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .neuInset(
+                                            cornerRadius = 9.dp,
+                                            backgroundColor = neu.surfaceRecessed,
+                                            shadowOffset = 2.dp,
+                                            blurRadius = 4.dp
+                                        )
+                                        .padding(horizontal = 8.dp, vertical = 4.dp)
                                 ) {
-                                    Surface(
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f),
-                                        modifier = Modifier.size(36.dp)
-                                    ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Icon(
-                                                action.icon,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                        }
-                                    }
-                                    Spacer(Modifier.width(12.dp))
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            action.title,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            action.subtitle,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                    Surface(
-                                        shape = RoundedCornerShape(8.dp),
-                                        color = MaterialTheme.colorScheme.surface
-                                    ) {
-                                        Text(
-                                            text = action.category.uppercase(),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                        )
-                                    }
+                                    Text(
+                                        text = action.category.uppercase(),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 }
                             }
                         }

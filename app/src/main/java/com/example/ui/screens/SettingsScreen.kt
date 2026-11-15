@@ -1,35 +1,59 @@
 package com.example.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import com.example.auth.GoogleUserProfile
 import com.example.data.local.AuraUserPreferences
+import com.example.data.local.CloudSyncStatus
 import com.example.ui.components.AuraGlassCard
+import com.example.ui.components.AuraIcon
+import com.example.ui.components.AuraIconContainer
+import com.example.ui.components.AuraIconSize
+import com.example.ui.components.AuraIcons
+import com.example.ui.components.AuraNeuButton
+import com.example.ui.components.AuraNeuDivider
+import com.example.ui.components.AuraNeuIconButton
+import com.example.ui.components.AuraNeuSegmentedControl
+import com.example.ui.components.AuraNeuSwitch
 import com.example.ui.components.AuraScrollEdgeMask
 import com.example.ui.components.appleSpringClickable
+import com.example.ui.components.neuInset
+import com.example.ui.components.neuRaised
+import com.example.ui.theme.LocalAuraNeumorphicPalette
 import com.example.ui.theme.getAccentColors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     preferences: AuraUserPreferences,
+    userProfile: GoogleUserProfile? = null,
+    syncStatus: CloudSyncStatus = CloudSyncStatus.AUTH_REQUIRED,
+    isSigningIn: Boolean = false,
+    onSignInWithGoogle: () -> Unit = {},
+    onSwitchAccount: () -> Unit = {},
+    onSignOut: () -> Unit = {},
+    onOpenCloudBackups: () -> Unit = {},
+    showDrawerButton: Boolean = true,
+    onOpenDrawer: () -> Unit = {},
     onSetThemeMode: (String) -> Unit,
     onSetAccentIndex: (Int) -> Unit,
     onSetDefaultNoteType: (String) -> Unit,
@@ -40,118 +64,276 @@ fun SettingsScreen(
     attachmentCount: Int,
     backupCount: Int
 ) {
-    val haptics = LocalHapticFeedback.current
+    val neu = LocalAuraNeumorphicPalette.current
+    var showSignOutConfirm by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
     ) {
+        // Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (showDrawerButton) {
+                AuraNeuIconButton(
+                    onClick = onOpenDrawer,
+                    size = 44.dp,
+                    cornerRadius = 14.dp,
+                    modifier = Modifier.testTag("open_drawer_button")
+                ) {
+                    AuraIcon(
+                        AuraIcons.Menu,
+                        contentDescription = "Open Navigation Drawer",
+                        size = AuraIconSize.Toolbar
+                    )
+                }
+                Spacer(Modifier.width(10.dp))
+            }
+
             Column {
                 Text(
                     "Settings",
-                    style = MaterialTheme.typography.headlineLarge
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground
                 )
                 Text(
-                    "AuraNotes v1.0 · Apple Liquid Glass Design System",
+                    "Version 2.0 · Soft UI",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 96.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 104.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                // Appearance & Materials Card
+                // Google Account & Cloud Sync Card
                 item {
                     AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Palette, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(Modifier.width(10.dp))
-                                Text("Appearance & Materials", style = MaterialTheme.typography.titleMedium)
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    AuraIconContainer(
+                                        imageVector = AuraIcons.Cloud,
+                                        containerSize = 38.dp,
+                                        iconSize = AuraIconSize.Toolbar,
+                                        cornerRadius = 12.dp,
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Text("Google Account & Sync", style = MaterialTheme.typography.titleMedium)
+                                }
+                                Text(
+                                    text = if (userProfile == null) "Offline" else if (preferences.driveBackupEnabled) syncStatus.label else "Paused",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (userProfile != null && preferences.driveBackupEnabled && syncStatus == CloudSyncStatus.SYNCED) {
+                                        neu.success
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
+                                )
                             }
 
-                            // Apple Segmented Control for Theme Mode
-                            Text("Theme Appearance", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            if (userProfile == null) {
+                                Text(
+                                    "Sign in with Google to synchronize backups privately into your Google Drive AppData folder.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                AuraNeuButton(
+                                    onClick = onSignInWithGoogle,
+                                    enabled = !isSigningIn,
+                                    isAccent = false,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .defaultMinSize(minHeight = 48.dp)
+                                        .testTag("settings_google_signin_button")
                                 ) {
-                                    listOf("DARK" to "Dark", "LIGHT" to "Light", "SYSTEM" to "System").forEach { (mode, label) ->
-                                        val selected = preferences.themeMode == mode
-                                        Surface(
-                                            shape = RoundedCornerShape(9.dp),
-                                            color = if (selected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                    if (isSigningIn) {
+                                        CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                                        Spacer(Modifier.width(10.dp))
+                                        Text("Signing in...", style = MaterialTheme.typography.labelLarge)
+                                    } else {
+                                        GoogleLogoMark(modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(10.dp))
+                                        Text("Continue with Google", style = MaterialTheme.typography.labelLarge)
+                                    }
+                                }
+                            } else {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .neuInset(
+                                            cornerRadius = 16.dp,
+                                            backgroundColor = neu.surfaceRecessed,
+                                            shadowOffset = 3.dp,
+                                            blurRadius = 6.dp
+                                        )
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    if (!userProfile.photoUrl.isNullOrBlank()) {
+                                        AsyncImage(
+                                            model = userProfile.photoUrl,
+                                            contentDescription = "Google Profile Picture",
+                                            contentScale = ContentScale.Crop,
                                             modifier = Modifier
-                                                .weight(1f)
-                                                .clip(RoundedCornerShape(9.dp))
-                                                .appleSpringClickable(
-                                                    pressedScale = 0.95f,
-                                                    enableHaptics = true,
-                                                    onClick = { onSetThemeMode(mode) }
-                                                )
-                                        ) {
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.padding(vertical = 8.dp)
-                                            ) {
-                                                Text(
-                                                    text = label,
-                                                    style = MaterialTheme.typography.labelMedium,
-                                                    color = if (selected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-                                                )
-                                            }
-                                        }
+                                                .size(42.dp)
+                                                .clip(CircleShape)
+                                        )
+                                    } else {
+                                        AuraIconContainer(
+                                            imageVector = AuraIcons.UserRound,
+                                            containerSize = 42.dp,
+                                            iconSize = AuraIconSize.Button,
+                                            cornerRadius = 21.dp,
+                                            tint = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = userProfile.displayName,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Text(
+                                            text = userProfile.email,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    AuraNeuButton(
+                                        onClick = onOpenCloudBackups,
+                                        isAccent = false,
+                                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 46.dp)
+                                    ) {
+                                        Text("Drive Backups", style = MaterialTheme.typography.labelMedium)
+                                    }
+                                    AuraNeuButton(
+                                        onClick = onSwitchAccount,
+                                        isAccent = false,
+                                        modifier = Modifier.weight(1f).defaultMinSize(minHeight = 46.dp)
+                                    ) {
+                                        Text("Switch", style = MaterialTheme.typography.labelMedium)
+                                    }
+                                    AuraNeuIconButton(
+                                        onClick = { showSignOutConfirm = true },
+                                        size = 46.dp,
+                                        cornerRadius = 14.dp,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.testTag("settings_signout_button")
+                                    ) {
+                                        AuraIcon(
+                                            AuraIcons.LogOut,
+                                            contentDescription = "Sign Out",
+                                            size = AuraIconSize.Button,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
                                     }
                                 }
                             }
+                        }
+                    }
+                }
 
-                            // Accent Color Palette
-                            Text("Liquid Glass System Tint", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                // Appearance & Accent Card
+                item {
+                    AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                AuraIconContainer(
+                                    imageVector = AuraIcons.Palette,
+                                    containerSize = 38.dp,
+                                    iconSize = AuraIconSize.Toolbar,
+                                    cornerRadius = 12.dp,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text("Appearance & Theme", style = MaterialTheme.typography.titleMedium)
+                            }
+
+                            Text(
+                                "Theme Mode",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            AuraNeuSegmentedControl(
+                                options = listOf("LIGHT" to "Light", "DARK" to "Dark", "SYSTEM" to "System"),
+                                selectedOption = preferences.themeMode,
+                                onSelect = onSetThemeMode
+                            )
+
+                            Text(
+                                "Accent Color",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                val accentNames = listOf("Liquid Blue", "Indigo", "Mint", "Rose", "Solar")
+                                val accentNames = listOf("Blue", "Violet", "Mint", "Coral", "Amber")
                                 accentNames.forEachIndexed { index, name ->
                                     val (color, glow) = getAccentColors(index)
                                     val isSelected = preferences.accentIndex == index
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                                        verticalArrangement = Arrangement.spacedBy(6.dp)
                                     ) {
-                                        Surface(
-                                            shape = CircleShape,
-                                            color = Color.Transparent,
-                                            border = if (isSelected) {
-                                                BorderStroke(2.2.dp, MaterialTheme.colorScheme.onSurface)
-                                            } else {
-                                                BorderStroke(1.dp, Color.White.copy(alpha = 0.35f))
-                                            },
+                                        Box(
+                                            contentAlignment = Alignment.Center,
                                             modifier = Modifier
-                                                .size(40.dp)
-                                                .clip(CircleShape)
-                                                .background(
-                                                    Brush.linearGradient(
-                                                        colors = listOf(color, glow)
-                                                    ),
-                                                    CircleShape
+                                                .size(46.dp)
+                                                .then(
+                                                    if (isSelected) {
+                                                        Modifier.neuInset(
+                                                            cornerRadius = 23.dp,
+                                                            backgroundColor = neu.surfaceRecessed,
+                                                            shadowOffset = 3.dp,
+                                                            blurRadius = 6.dp
+                                                        )
+                                                    } else {
+                                                        Modifier.neuRaised(
+                                                            cornerRadius = 23.dp,
+                                                            backgroundColor = neu.surface,
+                                                            shadowOffset = 4.dp,
+                                                            blurRadius = 8.dp
+                                                        )
+                                                    }
                                                 )
                                                 .appleSpringClickable(
                                                     pressedScale = 0.9f,
@@ -159,13 +341,26 @@ fun SettingsScreen(
                                                     onClick = { onSetAccentIndex(index) }
                                                 )
                                         ) {
-                                            Box(contentAlignment = Alignment.Center) {
+                                            Box(
+                                                contentAlignment = Alignment.Center,
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(CircleShape)
+                                                    .background(Brush.linearGradient(listOf(color, glow)))
+                                                    .then(
+                                                        if (isSelected) {
+                                                            Modifier.border(2.dp, Color.White.copy(alpha = 0.85f), CircleShape)
+                                                        } else {
+                                                            Modifier
+                                                        }
+                                                    )
+                                            ) {
                                                 if (isSelected) {
-                                                    Icon(
-                                                        Icons.Default.Check,
+                                                    AuraIcon(
+                                                        AuraIcons.Check,
                                                         contentDescription = name,
                                                         tint = Color.White,
-                                                        modifier = Modifier.size(18.dp)
+                                                        size = 16.dp
                                                     )
                                                 }
                                             }
@@ -173,6 +368,7 @@ fun SettingsScreen(
                                         Text(
                                             text = name,
                                             style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                                             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
@@ -182,161 +378,141 @@ fun SettingsScreen(
                     }
                 }
 
-                // Accessibility & Fluid Motion Controls (§14)
+                // Accessibility & Motion Card
                 item {
                     AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.AccessibilityNew, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
-                                Spacer(Modifier.width(10.dp))
-                                Text("Accessibility & Fluid Motion", style = MaterialTheme.typography.titleMedium)
-                            }
-
-                            // Reduced Motion
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                                    Text("Reduce Motion", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                                    Text(
-                                        "Replace physical spring slides with gentle cross-fades",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Switch(
-                                    checked = preferences.reducedMotion,
-                                    onCheckedChange = {
-                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onSetReducedMotion(it)
-                                    }
+                                AuraIconContainer(
+                                    imageVector = AuraIcons.Accessibility,
+                                    containerSize = 38.dp,
+                                    iconSize = AuraIconSize.Toolbar,
+                                    cornerRadius = 12.dp,
+                                    tint = MaterialTheme.colorScheme.secondary
                                 )
+                                Spacer(Modifier.width(12.dp))
+                                Text("Accessibility & Motion", style = MaterialTheme.typography.titleMedium)
                             }
 
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                            SettingSwitchRow(
+                                title = "Reduce Motion",
+                                subtitle = "Use gentle cross-fades instead of spring slides",
+                                checked = preferences.reducedMotion,
+                                onCheckedChange = onSetReducedMotion
+                            )
 
-                            // Reduced Transparency
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                                    Text("Reduce Transparency", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                                    Text(
-                                        "Make frosted glass surfaces solid and opaque for maximum legibility",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Switch(
-                                    checked = preferences.reducedTransparency,
-                                    onCheckedChange = {
-                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onSetReducedTransparency(it)
-                                    }
-                                )
-                            }
+                            AuraNeuDivider()
 
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
+                            SettingSwitchRow(
+                                title = "Reduce Transparency",
+                                subtitle = "Use solid surfaces across overlays and toolbars",
+                                checked = preferences.reducedTransparency,
+                                onCheckedChange = onSetReducedTransparency
+                            )
 
-                            // Increase Contrast
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
-                                    Text("Increase Contrast", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
-                                    Text(
-                                        "Sharpen surface borders and boost foreground text contrast",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                Switch(
-                                    checked = preferences.highContrast,
-                                    onCheckedChange = {
-                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                        onSetHighContrast(it)
-                                    }
-                                )
-                            }
+                            AuraNeuDivider()
+
+                            SettingSwitchRow(
+                                title = "Increase Contrast",
+                                subtitle = "Sharpen outlines and boost text contrast",
+                                checked = preferences.highContrast,
+                                onCheckedChange = onSetHighContrast
+                            )
                         }
                     }
                 }
 
-                // Default Editor Behavior Card
+                // Creation Defaults Card
                 item {
                     AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.EditNote, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(Modifier.width(10.dp))
+                                AuraIconContainer(
+                                    imageVector = AuraIcons.FilePenLine,
+                                    containerSize = 38.dp,
+                                    iconSize = AuraIconSize.Toolbar,
+                                    cornerRadius = 12.dp,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.width(12.dp))
                                 Text("Creation Defaults", style = MaterialTheme.typography.titleMedium)
                             }
 
-                            Text("Default Document Format:", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                listOf("RICH_TEXT" to "Rich Text", "CODE" to "Code Studio", "CHECKLIST" to "Checklist").forEach { (type, label) ->
-                                    FilterChip(
-                                        selected = preferences.defaultNoteType == type,
-                                        onClick = {
-                                            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                            onSetDefaultNoteType(type)
-                                        },
-                                        label = { Text(label) }
-                                    )
-                                }
-                            }
+                            Text(
+                                "Default Document Format",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            AuraNeuSegmentedControl(
+                                options = listOf(
+                                    "RICH_TEXT" to "Rich Text",
+                                    "CODE" to "Code Studio",
+                                    "CHECKLIST" to "Checklist"
+                                ),
+                                selectedOption = preferences.defaultNoteType,
+                                onSelect = onSetDefaultNoteType
+                            )
                         }
                     }
                 }
 
-                // Storage & Vault Dashboard
+                // Local Vault Telemetry Card
                 item {
                     AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Storage, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
-                                Spacer(Modifier.width(10.dp))
-                                Text("Local Vault Telemetry", style = MaterialTheme.typography.titleMedium)
+                                AuraIconContainer(
+                                    imageVector = AuraIcons.HardDrive,
+                                    containerSize = 38.dp,
+                                    iconSize = AuraIconSize.Toolbar,
+                                    cornerRadius = 12.dp,
+                                    tint = MaterialTheme.colorScheme.tertiary
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text("Local Storage Summary", style = MaterialTheme.typography.titleMedium)
                             }
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Column {
-                                    Text("Active Notes", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("$noteCount", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
-                                }
-                                Column {
-                                    Text("Vault Media", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("$attachmentCount", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
-                                }
-                                Column {
-                                    Text("Archives", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                    Text("$backupCount", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
-                                }
+                                TelemetryWell(label = "Notes", value = "$noteCount", modifier = Modifier.weight(1f))
+                                TelemetryWell(label = "Media", value = "$attachmentCount", modifier = Modifier.weight(1f))
+                                TelemetryWell(label = "Backups", value = "$backupCount", modifier = Modifier.weight(1f))
                             }
                         }
                     }
                 }
 
-                // Privacy & Offline Guarantee Card
+                // On-Device Privacy Card
                 item {
                     AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.VerifiedUser, contentDescription = null, tint = Color(0xFF30D158))
-                                Spacer(Modifier.width(10.dp))
-                                Text("On-Device Privacy Guarantee", style = MaterialTheme.typography.titleMedium)
+                                AuraIconContainer(
+                                    imageVector = AuraIcons.ShieldCheck,
+                                    containerSize = 38.dp,
+                                    iconSize = AuraIconSize.Toolbar,
+                                    cornerRadius = 12.dp,
+                                    tint = neu.success
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text("Privacy & Security", style = MaterialTheme.typography.titleMedium)
                             }
                             Text(
-                                "AuraNotes stores all notes, code files, media attachments, and backup archives strictly on your device's private storage. No accounts, tracking, or cloud servers are required.",
+                                "Your notes, code scripts, and media are stored locally first. Optional Google Drive backups are saved strictly inside your private appDataFolder over HTTPS with no third-party tracking.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -344,23 +520,32 @@ fun SettingsScreen(
                     }
                 }
 
-                // Author & Credits Card
+                // Developer Profile Card
                 item {
                     AuraGlassCard(modifier = Modifier.fillMaxWidth()) {
-                        Column(modifier = Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Column(
+                            modifier = Modifier.padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                                Spacer(Modifier.width(10.dp))
-                                Text("Author & Developer", style = MaterialTheme.typography.titleMedium)
+                                AuraIconContainer(
+                                    imageVector = AuraIcons.UserRound,
+                                    containerSize = 38.dp,
+                                    iconSize = AuraIconSize.Toolbar,
+                                    cornerRadius = 12.dp,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text("Developer", style = MaterialTheme.typography.titleMedium)
                             }
                             Text(
-                                "Jamshed Ali >>jamshedali.me",
+                                "Jamshed Ali · jamshedali.me",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                "AuraNix Technologies · Premium Offline Notes, Media Vault & Universal Code IDE",
+                                "AuraNix Technologies",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -375,5 +560,98 @@ fun SettingsScreen(
                 height = 10.dp
             )
         }
+    }
+
+    if (showSignOutConfirm) {
+        AlertDialog(
+            onDismissRequest = { showSignOutConfirm = false },
+            containerColor = neu.surfaceElevated,
+            title = { Text("Sign Out of Google?") },
+            text = {
+                Text(
+                    "Your local notes and media remain intact on this device. Cloud backups will pause until you sign back in.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                AuraNeuButton(
+                    onClick = {
+                        showSignOutConfirm = false
+                        onSignOut()
+                    },
+                    isAccent = true
+                ) {
+                    Text("Sign Out", color = Color.White, style = MaterialTheme.typography.labelLarge)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutConfirm = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+}
+
+@Composable
+private fun SettingSwitchRow(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(end = 12.dp)
+        ) {
+            Text(title, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        AuraNeuSwitch(
+            checked = checked,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@Composable
+private fun TelemetryWell(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    val neu = LocalAuraNeumorphicPalette.current
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
+            .neuInset(
+                cornerRadius = 16.dp,
+                backgroundColor = neu.surfaceRecessed,
+                shadowOffset = 3.dp,
+                blurRadius = 6.dp
+            )
+            .padding(vertical = 12.dp, horizontal = 8.dp)
+    ) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.primary
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

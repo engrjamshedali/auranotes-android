@@ -1,61 +1,62 @@
 package com.example.ui.screens
 
-import android.content.Intent
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.local.NoteEntity
 import com.example.data.local.NoteType
 import com.example.domain.CodeExecutionEngine
 import com.example.domain.ExecutionResult
+import com.example.ui.components.AuraAnimatedNavIcon
+import com.example.ui.components.AuraIcon
+import com.example.ui.components.AuraIconSize
+import com.example.ui.components.AuraIcons
+import com.example.ui.components.AuraNeuIconButton
+import com.example.ui.components.AuraNeuTextField
 import com.example.ui.components.QuickSymbolBar
 import com.example.ui.components.SyntaxHighlighter
 import com.example.ui.components.WebSandboxView
 import com.example.ui.components.appleSpringClickable
+import com.example.ui.components.neuInset
+import com.example.ui.components.neuRaised
 import com.example.ui.theme.CodeBackground
 import com.example.ui.theme.CodeLineNumber
-import com.example.ui.theme.LocalAuraAccessibility
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import com.example.ui.theme.LocalAuraNeumorphicPalette
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CodeStudioScreen(
     note: NoteEntity,
     onSaveNote: (NoteEntity) -> Unit,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
+    val neu = LocalAuraNeumorphicPalette.current
 
     var title by remember { mutableStateOf(note.title) }
     var codeValue by remember { mutableStateOf(TextFieldValue(note.content, TextRange(note.content.length))) }
@@ -64,13 +65,19 @@ fun CodeStudioScreen(
     var executionResult by remember { mutableStateOf<ExecutionResult?>(null) }
     val webConsoleLogs = remember { mutableStateListOf<String>() }
 
-    // Active Tab in Code Studio: 0 = Editor, 1 = Output Console, 2 = Web Preview
     var selectedTab by remember { mutableStateOf(0) }
     var showLanguageMenu by remember { mutableStateOf(false) }
     var showTemplateMenu by remember { mutableStateOf(false) }
-    var showFindReplace by remember { mutableStateOf(false) }
-    var findQuery by remember { mutableStateOf("") }
-    var replaceQuery by remember { mutableStateOf("") }
+    var isSavingLocal by remember { mutableStateOf(false) }
+    var hasInitialized by remember { mutableStateOf(false) }
+
+    fun buildUpdatedCodeNote(): NoteEntity = note.copy(
+        title = title,
+        content = codeValue.text,
+        language = selectedLanguage,
+        noteType = NoteType.CODE.name,
+        updatedAt = System.currentTimeMillis()
+    )
 
     val languages = listOf(
         "python" to "Python",
@@ -91,16 +98,21 @@ fun CodeStudioScreen(
         "csharp" to "C#"
     )
 
-    // Auto-save debouncer
+    DisposableEffect(Unit) {
+        onDispose {
+            onSaveNote(buildUpdatedCodeNote())
+        }
+    }
+
     LaunchedEffect(title, codeValue.text, selectedLanguage) {
-        val updated = note.copy(
-            title = title,
-            content = codeValue.text,
-            language = selectedLanguage,
-            noteType = NoteType.CODE.name,
-            updatedAt = System.currentTimeMillis()
-        )
-        onSaveNote(updated)
+        if (!hasInitialized) {
+            hasInitialized = true
+            return@LaunchedEffect
+        }
+        isSavingLocal = true
+        delay(380L)
+        onSaveNote(buildUpdatedCodeNote())
+        isSavingLocal = false
     }
 
     fun runCode() {
@@ -110,12 +122,7 @@ fun CodeStudioScreen(
             val res = CodeExecutionEngine.executeCode(selectedLanguage, codeValue.text)
             executionResult = res
             isRunning = false
-            // If HTML/JS, user can view both Console and Web Preview
-            if (selectedLanguage.lowercase() in listOf("html", "javascript", "js", "htm")) {
-                selectedTab = 2 // Switch to Web preview
-            } else {
-                selectedTab = 1 // Switch to Console Output
-            }
+            selectedTab = if (selectedLanguage.lowercase() in listOf("html", "javascript", "js", "htm")) 2 else 1
         }
     }
 
@@ -130,105 +137,123 @@ fun CodeStudioScreen(
         codeValue = TextFieldValue(templateCode, TextRange(templateCode.length))
     }
 
-    val a11y = LocalAuraAccessibility.current
-
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    AuraNeuIconButton(
+                        onClick = {
+                            onSaveNote(buildUpdatedCodeNote())
+                            onBack()
+                        },
+                        size = 42.dp,
+                        cornerRadius = 13.dp
+                    ) {
+                        AuraIcon(AuraIcons.ArrowLeft, contentDescription = "Back", size = AuraIconSize.Toolbar)
+                    }
+
+                    Column {
                         Text(
                             text = "Code Studio",
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
                         )
-                        Spacer(Modifier.width(8.dp))
-                        // Language Dropdown Selector
-                        Box {
-                            FilterChip(
-                                selected = true,
-                                onClick = { showLanguageMenu = true },
-                                label = {
-                                    Text(
-                                        selectedLanguage.uppercase(),
-                                        fontFamily = FontFamily.Monospace,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                },
-                                trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) }
-                            )
+                        Text(
+                            text = if (isSavingLocal) "Saving..." else "Saved locally",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSavingLocal) MaterialTheme.colorScheme.primary else neu.success
+                        )
+                    }
 
-                            DropdownMenu(
-                                expanded = showLanguageMenu,
-                                onDismissRequest = { showLanguageMenu = false }
+                    Box {
+                        Box(
+                            modifier = Modifier
+                                .neuRaised(
+                                    cornerRadius = 11.dp,
+                                    backgroundColor = neu.surface,
+                                    shadowOffset = 3.dp,
+                                    blurRadius = 6.dp
+                                )
+                                .clickable { showLanguageMenu = true }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                languages.forEach { (langKey, langLabel) ->
-                                    DropdownMenuItem(
-                                        text = {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween
-                                            ) {
-                                                Text(langLabel)
-                                                if (langKey in listOf("python", "html", "javascript", "sql")) {
-                                                    Text(" (Local Engine)", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp)
-                                                }
+                                Text(
+                                    selectedLanguage.uppercase(),
+                                    fontFamily = FontFamily.Monospace,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                AuraIcon(AuraIcons.ChevronDown, contentDescription = null, size = 14.dp, tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+
+                        DropdownMenu(
+                            expanded = showLanguageMenu,
+                            onDismissRequest = { showLanguageMenu = false },
+                            containerColor = neu.surfaceElevated
+                        ) {
+                            languages.forEach { (langKey, langLabel) ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(langLabel)
+                                            if (langKey in listOf("python", "html", "javascript", "sql")) {
+                                                Text(" (Local)", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp)
                                             }
-                                        },
-                                        onClick = {
-                                            selectedLanguage = langKey
-                                            showLanguageMenu = false
                                         }
-                                    )
-                                }
+                                    },
+                                    onClick = {
+                                        selectedLanguage = langKey
+                                        showLanguageMenu = false
+                                    }
+                                )
                             }
                         }
                     }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    // Templates button
-                    IconButton(onClick = { showTemplateMenu = true }) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = "Code Templates", tint = MaterialTheme.colorScheme.secondary)
-                    }
+                }
 
-                    // Run Button
-                    FilledIconButton(
-                        onClick = { runCode() },
-                        enabled = !isRunning,
-                        colors = IconButtonDefaults.filledIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        if (isRunning) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(Icons.Default.PlayArrow, contentDescription = "Run Code")
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box {
+                        AuraNeuIconButton(
+                            onClick = { showTemplateMenu = true },
+                            size = 42.dp,
+                            cornerRadius = 13.dp,
+                            tint = MaterialTheme.colorScheme.secondary
+                        ) {
+                            AuraIcon(AuraIcons.Sparkles, contentDescription = "Code Templates", size = AuraIconSize.Toolbar)
                         }
-                    }
 
-                    // Templates dropdown menu
-                    DropdownMenu(
-                        expanded = showTemplateMenu,
-                        onDismissRequest = { showTemplateMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Python: Analytics & Math") },
-                            onClick = {
-                                showTemplateMenu = false
-                                applyTemplate("""
+                        DropdownMenu(
+                            expanded = showTemplateMenu,
+                            onDismissRequest = { showTemplateMenu = false },
+                            containerColor = neu.surfaceElevated
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Python: Analytics & Math") },
+                                onClick = {
+                                    showTemplateMenu = false
+                                    applyTemplate(
+                                        """
 # Python Math & Analytics
 scores = [12, 45, 68, 90, 104]
 print("Dataset:", scores)
@@ -236,20 +261,22 @@ print("Count:", len(scores))
 print("Sum:", sum(scores))
 mean = sum(scores) / len(scores)
 print("Mean average:", mean)
-                                """.trimIndent())
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("HTML/JS: Neon Counter App") },
-                            onClick = {
-                                showTemplateMenu = false
-                                applyTemplate("""
+                                        """.trimIndent()
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("HTML/JS: Interactive Counter") },
+                                onClick = {
+                                    showTemplateMenu = false
+                                    applyTemplate(
+                                        """
 <!DOCTYPE html>
 <html>
 <body style="background:#090D16; color:#38BDF8; font-family:sans-serif; text-align:center; padding:30px;">
   <h2>AuraNotes Web Sandbox</h2>
   <h1 id="count">0</h1>
-  <button onclick="inc()" style="background:#6366F1; color:white; border:none; padding:12px 24px; border-radius:10px; font-weight:bold;">Click Me</button>
+  <button onclick="inc()" style="background:#3B82F6; color:white; border:none; padding:12px 24px; border-radius:10px; font-weight:bold;">Click Me</button>
   <script>
     let c = 0;
     function inc() {
@@ -260,75 +287,125 @@ print("Mean average:", mean)
   </script>
 </body>
 </html>
-                                """.trimIndent())
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("SQL: Create & Query Database") },
-                            onClick = {
-                                showTemplateMenu = false
-                                applyTemplate("""
+                                        """.trimIndent()
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("SQL: Create & Query Table") },
+                                onClick = {
+                                    showTemplateMenu = false
+                                    applyTemplate(
+                                        """
 CREATE TABLE developers (id INTEGER PRIMARY KEY, name TEXT, language TEXT, aura_points INTEGER);
 INSERT INTO developers VALUES (1, 'Alice', 'Kotlin', 980);
 INSERT INTO developers VALUES (2, 'Bob', 'Python', 870);
 INSERT INTO developers VALUES (3, 'Charlie', 'Rust', 950);
 SELECT * FROM developers WHERE aura_points > 900;
-                                """.trimIndent())
-                            }
-                        )
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            Surface(
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = if (a11y.reducedTransparency) 0.98f else 0.78f),
-                tonalElevation = 8.dp,
-                shadowElevation = 14.dp,
-                border = BorderStroke(
-                    1.dp,
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.35f),
-                            a11y.accentSecondary.copy(alpha = 0.25f),
-                            Color.White.copy(alpha = 0.10f)
-                        )
-                    )
-                )
-            ) {
-                Column(modifier = Modifier.navigationBarsPadding()) {
-                    // Developer Quick Symbol Bar
-                    if (selectedTab == 0) {
-                        QuickSymbolBar(onInsertSymbol = { insertSymbol(it) })
+                                        """.trimIndent()
+                                    )
+                                }
+                            )
+                        }
                     }
 
-                    // Bottom Tabs Bar: Editor, Output, Preview
-                    NavigationBar(
-                        containerColor = Color.Transparent,
-                        tonalElevation = 0.dp
+                    AuraNeuIconButton(
+                        onClick = { runCode() },
+                        enabled = !isRunning,
+                        size = 42.dp,
+                        cornerRadius = 13.dp,
+                        isAccent = true
                     ) {
-                        NavigationBarItem(
-                            selected = selectedTab == 0,
-                            onClick = { selectedTab = 0 },
-                            icon = { Icon(Icons.Default.Code, contentDescription = null) },
-                            label = { Text("Editor") }
-                        )
-                        NavigationBarItem(
-                            selected = selectedTab == 1,
-                            onClick = { selectedTab = 1 },
-                            icon = { Icon(Icons.Default.Terminal, contentDescription = null) },
-                            label = {
-                                Text(if (executionResult?.status == "ERROR") "Output (Error)" else "Console")
-                            }
-                        )
-                        if (selectedLanguage.lowercase() in listOf("html", "javascript", "js", "htm")) {
-                            NavigationBarItem(
-                                selected = selectedTab == 2,
-                                onClick = { selectedTab = 2 },
-                                icon = { Icon(Icons.Default.Language, contentDescription = null) },
-                                label = { Text("Web Preview") }
+                        if (isRunning) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
                             )
+                        } else {
+                            AuraIcon(AuraIcons.Play, contentDescription = "Run Code", size = AuraIconSize.Button, tint = Color.White)
+                        }
+                    }
+                }
+            }
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                    .neuRaised(
+                        cornerRadius = 24.dp,
+                        backgroundColor = neu.surface,
+                        shadowOffset = 6.dp,
+                        blurRadius = 12.dp
+                    )
+            ) {
+                if (selectedTab == 0) {
+                    QuickSymbolBar(
+                        onInsertSymbol = { insertSymbol(it) },
+                        modifier = Modifier.clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+                    )
+                }
+
+                // Neumorphic Studio Tab Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    val studioTabs = buildList {
+                        add(Triple(0, "Editor", AuraIcons.Code2))
+                        add(Triple(1, if (executionResult?.status == "ERROR") "Output (Error)" else "Console", AuraIcons.Terminal))
+                        if (selectedLanguage.lowercase() in listOf("html", "javascript", "js", "htm")) {
+                            add(Triple(2, "Web Preview", AuraIcons.Globe))
+                        }
+                    }
+                    studioTabs.forEach { (idx, label, icon) ->
+                        val isSelected = selectedTab == idx
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .weight(1f)
+                                .then(
+                                    if (isSelected) {
+                                        Modifier.neuInset(
+                                            cornerRadius = 16.dp,
+                                            backgroundColor = neu.surfaceRecessed,
+                                            shadowOffset = 2.5.dp,
+                                            blurRadius = 5.dp
+                                        )
+                                    } else {
+                                        Modifier.clip(RoundedCornerShape(16.dp))
+                                    }
+                                )
+                                .appleSpringClickable(
+                                    pressedScale = 0.94f,
+                                    enableHaptics = true,
+                                    onClick = { selectedTab = idx }
+                                )
+                                .padding(vertical = 7.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                AuraAnimatedNavIcon(
+                                    imageVector = icon,
+                                    contentDescription = label,
+                                    selected = isSelected,
+                                    size = AuraIconSize.Button
+                                )
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
@@ -339,36 +416,39 @@ SELECT * FROM developers WHERE aura_points > 900;
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
         ) {
             when (selectedTab) {
                 0 -> {
-                    // TAB 0: Code Editor with line numbers & syntax highlighting
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        // Title header
-                        TextField(
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        AuraNeuTextField(
                             value = title,
                             onValueChange = { title = it },
-                            placeholder = { Text("File Name or Title (e.g. main.py)") },
+                            placeholder = "File Name (e.g. main.py)",
+                            leadingIcon = {
+                                AuraIcon(AuraIcons.FileCode2, contentDescription = null, size = AuraIconSize.Input, tint = MaterialTheme.colorScheme.primary)
+                            },
                             textStyle = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent
-                            ),
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
+                            modifier = Modifier.fillMaxWidth()
                         )
 
-                        // Editor Canvas (Split: Line Numbers + Text Editor)
+                        // Soft UI Framed Developer Canvas
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f)
+                                .neuRaised(
+                                    cornerRadius = 20.dp,
+                                    backgroundColor = CodeBackground,
+                                    shadowOffset = 5.dp,
+                                    blurRadius = 10.dp
+                                )
                                 .background(CodeBackground)
                                 .verticalScroll(rememberScrollState())
                         ) {
-                            // Line Numbers
                             val lineCount = remember(codeValue.text) { codeValue.text.lines().size.coerceAtLeast(1) }
                             val lineNumbersText = remember(lineCount) {
                                 (1..lineCount).joinToString("\n") { it.toString().padStart(3) }
@@ -383,14 +463,17 @@ SELECT * FROM developers WHERE aura_points > 900;
                                     color = CodeLineNumber
                                 ),
                                 modifier = Modifier
-                                    .background(CodeBackground.copy(alpha = 0.8f))
-                                    .padding(horizontal = 8.dp, vertical = 12.dp)
+                                    .background(CodeBackground.copy(alpha = 0.85f))
+                                    .padding(horizontal = 10.dp, vertical = 14.dp)
                             )
 
                             VerticalDivider(color = CodeLineNumber.copy(alpha = 0.3f), modifier = Modifier.fillMaxHeight())
 
-                            // Code Text Field with Syntax Highlighting
-                            Box(modifier = Modifier.weight(1f).padding(horizontal = 10.dp, vertical = 12.dp)) {
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 12.dp, vertical = 14.dp)
+                            ) {
                                 BasicTextField(
                                     value = codeValue,
                                     onValueChange = { codeValue = it },
@@ -401,23 +484,30 @@ SELECT * FROM developers WHERE aura_points > 900;
                                         color = Color(0xFFF8FAFC)
                                     ),
                                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                    visualTransformation = androidx.compose.ui.text.input.VisualTransformation { text ->
-                                        androidx.compose.ui.text.input.TransformedText(
+                                    visualTransformation = VisualTransformation { text ->
+                                        TransformedText(
                                             SyntaxHighlighter.highlight(text.text, selectedLanguage),
-                                            androidx.compose.ui.text.input.OffsetMapping.Identity
+                                            OffsetMapping.Identity
                                         )
                                     },
-                                    modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 350.dp)
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .defaultMinSize(minHeight = 350.dp)
                                 )
                             }
                         }
                     }
                 }
                 1 -> {
-                    // TAB 1: Console / Output Panel
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
+                            .neuRaised(
+                                cornerRadius = 20.dp,
+                                backgroundColor = CodeBackground,
+                                shadowOffset = 5.dp,
+                                blurRadius = 10.dp
+                            )
                             .background(CodeBackground)
                             .padding(16.dp)
                     ) {
@@ -455,13 +545,13 @@ SELECT * FROM developers WHERE aura_points > 900;
                                     executionResult = null
                                     webConsoleLogs.clear()
                                 }) {
-                                    Icon(Icons.Default.ClearAll, contentDescription = "Clear", tint = Color.LightGray)
+                                    AuraIcon(AuraIcons.Eraser, contentDescription = "Clear", size = AuraIconSize.Button, tint = Color.LightGray)
                                 }
                                 IconButton(onClick = {
                                     val text = (executionResult?.stdout ?: "") + "\n" + (executionResult?.stderr ?: "")
                                     clipboardManager.setText(AnnotatedString(text))
                                 }) {
-                                    Icon(Icons.Default.ContentCopy, contentDescription = "Copy", tint = Color.LightGray)
+                                    AuraIcon(AuraIcons.Copy, contentDescription = "Copy", size = AuraIconSize.Button, tint = Color.LightGray)
                                 }
                             }
                         }
@@ -475,12 +565,26 @@ SELECT * FROM developers WHERE aura_points > 900;
                                 .verticalScroll(rememberScrollState())
                         ) {
                             if (executionResult == null && webConsoleLogs.isEmpty()) {
-                                Text(
-                                    "Press the Run (▶) button above to execute code.\nPython, SQL, HTML/JS, and more run completely offline on your device.",
-                                    fontFamily = FontFamily.Monospace,
-                                    fontSize = 13.sp,
-                                    color = Color.Gray
-                                )
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 48.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    AuraIcon(
+                                        AuraIcons.Terminal,
+                                        contentDescription = null,
+                                        tint = CodeLineNumber,
+                                        size = AuraIconSize.EmptyState
+                                    )
+                                    Text(
+                                        "Tap Run to execute code locally.",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 13.sp,
+                                        color = CodeLineNumber
+                                    )
+                                }
                             } else {
                                 executionResult?.let { res ->
                                     if (res.stdout.isNotEmpty()) {
@@ -507,7 +611,7 @@ SELECT * FROM developers WHERE aura_points > 900;
                                 if (webConsoleLogs.isNotEmpty()) {
                                     Spacer(Modifier.height(10.dp))
                                     Text("--- Web Console Logs ---", color = MaterialTheme.colorScheme.primary, fontSize = 11.sp)
-                                    webConsoleLogs.forEach { log: String ->
+                                    webConsoleLogs.forEach { log ->
                                         Text(
                                             text = log,
                                             fontFamily = FontFamily.Monospace,
@@ -521,14 +625,22 @@ SELECT * FROM developers WHERE aura_points > 900;
                     }
                 }
                 2 -> {
-                    // TAB 2: Interactive Web Sandbox Live Preview
-                    WebSandboxView(
-                        htmlContent = codeValue.text,
-                        modifier = Modifier.fillMaxSize(),
-                        onConsoleLog = { logMsg ->
-                            webConsoleLogs.add(logMsg)
-                        }
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .neuRaised(
+                                cornerRadius = 20.dp,
+                                backgroundColor = neu.surface,
+                                shadowOffset = 5.dp,
+                                blurRadius = 10.dp
+                            )
+                    ) {
+                        WebSandboxView(
+                            htmlContent = codeValue.text,
+                            modifier = Modifier.fillMaxSize(),
+                            onConsoleLog = { logMsg -> webConsoleLogs.add(logMsg) }
+                        )
+                    }
                 }
             }
         }

@@ -1,14 +1,12 @@
 package com.example.ui.screens
 
-import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -18,34 +16,35 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import coil.compose.AsyncImage
 import com.example.data.local.AttachmentEntity
 import com.example.data.local.CategoryEntity
 import com.example.data.local.NoteEntity
-import com.example.data.local.NoteType
 import com.example.ui.components.AudioRecorderDialog
 import com.example.ui.components.AuraGlassCard
-import com.example.ui.components.appleSpringClickable
-import com.example.ui.theme.LocalAuraAccessibility
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.ui.graphics.Brush
+import com.example.ui.components.AuraIcon
+import com.example.ui.components.AuraIconSize
+import com.example.ui.components.AuraIcons
+import com.example.ui.components.AuraNeuButton
+import com.example.ui.components.AuraNeuIconButton
+import com.example.ui.components.AuraNeuTextField
+import com.example.ui.components.neuInset
+import com.example.ui.components.neuRaised
+import com.example.ui.theme.LocalAuraNeumorphicPalette
+import kotlinx.coroutines.delay
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +60,8 @@ fun RichTextEditorScreen(
     onDeleteAttachment: (String) -> Unit
 ) {
     val context = LocalContext.current
+    val neu = LocalAuraNeumorphicPalette.current
+
     var title by remember { mutableStateOf(note.title) }
     var contentValue by remember { mutableStateOf(TextFieldValue(note.content, TextRange(note.content.length))) }
     var selectedCategoryId by remember { mutableStateOf(note.categoryId) }
@@ -73,16 +74,27 @@ fun RichTextEditorScreen(
     var findText by remember { mutableStateOf("") }
     var replaceText by remember { mutableStateOf("") }
 
-    // Undo / Redo history stacks
     val undoStack = remember { mutableStateListOf<String>() }
     val redoStack = remember { mutableStateListOf<String>() }
 
-    // Audio player state
     var currentPlayingPath by remember { mutableStateOf<String?>(null) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var isSavingLocal by remember { mutableStateOf(false) }
+    var hasInitialized by remember { mutableStateOf(false) }
+
+    fun buildUpdatedNote(): NoteEntity = note.copy(
+        title = title,
+        content = contentValue.text,
+        categoryId = selectedCategoryId,
+        tags = tags,
+        isPinned = isPinned,
+        isFavorite = isFavorite,
+        updatedAt = System.currentTimeMillis()
+    )
 
     DisposableEffect(Unit) {
         onDispose {
+            onSaveNote(buildUpdatedNote())
             try {
                 mediaPlayer?.stop()
                 mediaPlayer?.release()
@@ -90,21 +102,17 @@ fun RichTextEditorScreen(
         }
     }
 
-    // Auto-save debouncer
     LaunchedEffect(title, contentValue.text, selectedCategoryId, tags, isPinned, isFavorite) {
-        val updated = note.copy(
-            title = title,
-            content = contentValue.text,
-            categoryId = selectedCategoryId,
-            tags = tags,
-            isPinned = isPinned,
-            isFavorite = isFavorite,
-            updatedAt = System.currentTimeMillis()
-        )
-        onSaveNote(updated)
+        if (!hasInitialized) {
+            hasInitialized = true
+            return@LaunchedEffect
+        }
+        isSavingLocal = true
+        delay(380L)
+        onSaveNote(buildUpdatedNote())
+        isSavingLocal = false
     }
 
-    // Android Photo Picker
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -114,7 +122,6 @@ fun RichTextEditorScreen(
         }
     }
 
-    // Android Document Picker
     val docPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri ->
@@ -129,7 +136,6 @@ fun RichTextEditorScreen(
         }
     }
 
-    // Helper to format or insert markdown snippets
     fun insertMarkdown(prefix: String, suffix: String = "") {
         val selection = contentValue.selection
         val text = contentValue.text
@@ -176,9 +182,7 @@ fun RichTextEditorScreen(
                 mediaPlayer = MediaPlayer().apply {
                     setDataSource(path)
                     prepare()
-                    setOnCompletionListener {
-                        currentPlayingPath = null
-                    }
+                    setOnCompletionListener { currentPlayingPath = null }
                     start()
                 }
                 currentPlayingPath = path
@@ -188,210 +192,281 @@ fun RichTextEditorScreen(
         }
     }
 
-    val a11y = LocalAuraAccessibility.current
-
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent
-                ),
-                title = {
-                    val cat = categories.find { it.id == selectedCategoryId }
-                    Text(
-                        cat?.name ?: "Editor",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { undo() }, enabled = undoStack.isNotEmpty()) {
-                        Icon(Icons.Default.Undo, contentDescription = "Undo")
-                    }
-                    IconButton(onClick = { redo() }, enabled = redoStack.isNotEmpty()) {
-                        Icon(Icons.Default.Redo, contentDescription = "Redo")
-                    }
-                    IconButton(onClick = { isPinned = !isPinned }) {
-                        Icon(
-                            if (isPinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
-                            contentDescription = "Pin",
-                            tint = if (isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = { isFavorite = !isFavorite }) {
-                        Icon(
-                            if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
-                            contentDescription = "Favorite",
-                            tint = if (isFavorite) Color(0xFFEF4444) else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    IconButton(onClick = { showCategoryDialog = true }) {
-                        Icon(Icons.Default.Folder, contentDescription = "Category")
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            // Floating Apple Liquid Glass Formatting Toolbar
-            Surface(
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = if (a11y.reducedTransparency) 0.98f else 0.78f),
-                tonalElevation = 8.dp,
-                shadowElevation = 14.dp,
-                border = BorderStroke(
-                    1.dp,
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color.White.copy(alpha = 0.38f),
-                            a11y.accentSecondary.copy(alpha = 0.28f),
-                            Color.White.copy(alpha = 0.10f)
-                        )
-                    )
-                )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.navigationBarsPadding()) {
-                    // Find and replace bar (if toggled)
-                    AnimatedVisibility(visible = showFindReplace) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    AuraNeuIconButton(
+                        onClick = {
+                            onSaveNote(buildUpdatedNote())
+                            onBack()
+                        },
+                        size = 42.dp,
+                        cornerRadius = 13.dp
+                    ) {
+                        AuraIcon(AuraIcons.ArrowLeft, contentDescription = "Back", size = AuraIconSize.Toolbar)
+                    }
+
+                    val cat = categories.find { it.id == selectedCategoryId }
+                    Box(
+                        modifier = Modifier
+                            .neuRaised(
+                                cornerRadius = 12.dp,
+                                backgroundColor = neu.surface,
+                                shadowOffset = 3.dp,
+                                blurRadius = 6.dp
+                            )
+                            .clickable { showCategoryDialog = true }
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
-                            OutlinedTextField(
-                                value = findText,
-                                onValueChange = { findText = it },
-                                placeholder = { Text("Find...", fontSize = 12.sp) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true
+                            AuraIcon(AuraIcons.Folder, contentDescription = "Category", size = AuraIconSize.Small, tint = MaterialTheme.colorScheme.primary)
+                            Text(
+                                cat?.name ?: "Note",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                            OutlinedTextField(
-                                value = replaceText,
-                                onValueChange = { replaceText = it },
-                                placeholder = { Text("Replace...", fontSize = 12.sp) },
-                                modifier = Modifier.weight(1f),
-                                singleLine = true
-                            )
-                            Button(
-                                onClick = {
-                                    if (findText.isNotEmpty()) {
-                                        undoStack.add(contentValue.text)
-                                        val replaced = contentValue.text.replace(findText, replaceText)
-                                        contentValue = TextFieldValue(replaced, TextRange(replaced.length))
-                                    }
-                                },
-                                contentPadding = PaddingValues(horizontal = 10.dp)
-                            ) {
-                                Text("All", fontSize = 12.sp)
-                            }
                         }
                     }
+                }
 
-                    // Formatting Buttons Row
+                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                    AuraNeuIconButton(
+                        onClick = { undo() },
+                        enabled = undoStack.isNotEmpty(),
+                        size = 38.dp,
+                        cornerRadius = 11.dp
+                    ) {
+                        AuraIcon(
+                            AuraIcons.Undo2,
+                            contentDescription = "Undo",
+                            size = AuraIconSize.Button,
+                            tint = if (undoStack.isNotEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                    }
+                    AuraNeuIconButton(
+                        onClick = { redo() },
+                        enabled = redoStack.isNotEmpty(),
+                        size = 38.dp,
+                        cornerRadius = 11.dp
+                    ) {
+                        AuraIcon(
+                            AuraIcons.Redo2,
+                            contentDescription = "Redo",
+                            size = AuraIconSize.Button,
+                            tint = if (redoStack.isNotEmpty()) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                    }
+                    AuraNeuIconButton(
+                        onClick = { isPinned = !isPinned },
+                        size = 38.dp,
+                        cornerRadius = 11.dp,
+                        isActive = isPinned
+                    ) {
+                        AuraIcon(AuraIcons.Pin, contentDescription = "Pin", size = AuraIconSize.Button)
+                    }
+                    AuraNeuIconButton(
+                        onClick = { isFavorite = !isFavorite },
+                        size = 38.dp,
+                        cornerRadius = 11.dp,
+                        isActive = isFavorite,
+                        tint = if (isFavorite) Color(0xFFF43F5E) else MaterialTheme.colorScheme.onSurfaceVariant
+                    ) {
+                        AuraIcon(AuraIcons.Heart, contentDescription = "Favorite", size = AuraIconSize.Button)
+                    }
+                }
+            }
+        },
+        bottomBar = {
+            // Floating Neumorphic Formatting Dock
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .padding(horizontal = 14.dp, vertical = 8.dp)
+                    .neuRaised(
+                        cornerRadius = 24.dp,
+                        backgroundColor = neu.surface,
+                        shadowOffset = 6.dp,
+                        blurRadius = 12.dp
+                    )
+                    .padding(vertical = 6.dp)
+            ) {
+                AnimatedVisibility(visible = showFindReplace) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 8.dp),
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        IconButton(onClick = { insertMarkdown("# ", "") }) {
-                            Text("H1", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        }
-                        IconButton(onClick = { insertMarkdown("## ", "") }) {
-                            Text("H2", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        }
-                        IconButton(onClick = { insertMarkdown("**", "**") }) {
-                            Icon(Icons.Default.FormatBold, contentDescription = "Bold")
-                        }
-                        IconButton(onClick = { insertMarkdown("*", "*") }) {
-                            Icon(Icons.Default.FormatItalic, contentDescription = "Italic")
-                        }
-                        IconButton(onClick = { insertMarkdown("~~", "~~") }) {
-                            Icon(Icons.Default.FormatStrikethrough, contentDescription = "Strikethrough")
-                        }
-                        IconButton(onClick = { insertMarkdown("- [ ] ", "") }) {
-                            Icon(Icons.Default.Checklist, contentDescription = "Task Checkbox")
-                        }
-                        IconButton(onClick = { insertMarkdown("- ", "") }) {
-                            Icon(Icons.Default.FormatListBulleted, contentDescription = "Bullet List")
-                        }
-                        IconButton(onClick = { insertMarkdown("1. ", "") }) {
-                            Icon(Icons.Default.FormatListNumbered, contentDescription = "Numbered List")
-                        }
-                        IconButton(onClick = { insertMarkdown("> ", "") }) {
-                            Icon(Icons.Default.FormatQuote, contentDescription = "Quote")
-                        }
-                        IconButton(onClick = { insertMarkdown("`", "`") }) {
-                            Icon(Icons.Default.Code, contentDescription = "Inline Code")
-                        }
-                        IconButton(onClick = { insertMarkdown("\n```\n", "\n```\n") }) {
-                            Text("```", fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-                        }
-                        IconButton(onClick = {
-                            insertMarkdown("\n| Header 1 | Header 2 |\n|---|---|\n| Cell 1 | Cell 2 |\n")
-                        }) {
-                            Icon(Icons.Default.TableChart, contentDescription = "Table")
-                        }
-                        IconButton(onClick = { insertMarkdown("\n---\n") }) {
-                            Icon(Icons.Default.HorizontalRule, contentDescription = "Divider")
-                        }
-                        IconButton(onClick = { insertMarkdown("[", "](https://)") }) {
-                            Icon(Icons.Default.Link, contentDescription = "Link")
-                        }
-
-                        VerticalDivider(modifier = Modifier.height(24.dp).padding(horizontal = 4.dp))
-
-                        // Media and attachment actions
-                        IconButton(onClick = {
-                            photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                        }) {
-                            Icon(Icons.Default.AddPhotoAlternate, contentDescription = "Add Photo", tint = MaterialTheme.colorScheme.secondary)
-                        }
-                        IconButton(onClick = { showAudioRecorder = true }) {
-                            Icon(Icons.Default.Mic, contentDescription = "Record Voice Note", tint = MaterialTheme.colorScheme.tertiary)
-                        }
-                        IconButton(onClick = {
-                            docPicker.launch(arrayOf("*/*"))
-                        }) {
-                            Icon(Icons.Default.AttachFile, contentDescription = "Attach Document", tint = MaterialTheme.colorScheme.primary)
-                        }
-                        IconButton(onClick = { showFindReplace = !showFindReplace }) {
-                            Icon(Icons.Default.FindReplace, contentDescription = "Find & Replace")
+                        AuraNeuTextField(
+                            value = findText,
+                            onValueChange = { findText = it },
+                            placeholder = "Find...",
+                            modifier = Modifier.weight(1f)
+                        )
+                        AuraNeuTextField(
+                            value = replaceText,
+                            onValueChange = { replaceText = it },
+                            placeholder = "Replace...",
+                            modifier = Modifier.weight(1f)
+                        )
+                        AuraNeuButton(
+                            onClick = {
+                                if (findText.isNotEmpty()) {
+                                    undoStack.add(contentValue.text)
+                                    val replaced = contentValue.text.replace(findText, replaceText)
+                                    contentValue = TextFieldValue(replaced, TextRange(replaced.length))
+                                }
+                            },
+                            isAccent = true,
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text("All", fontSize = 12.sp, color = Color.White, fontWeight = FontWeight.SemiBold)
                         }
                     }
+                }
 
-                    // Word count & Status row
+                // Formatting Buttons Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    IconButton(onClick = { insertMarkdown("# ", "") }) {
+                        AuraIcon(AuraIcons.Heading1, contentDescription = "Heading 1", size = AuraIconSize.Toolbar, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = { insertMarkdown("## ", "") }) {
+                        AuraIcon(AuraIcons.Heading2, contentDescription = "Heading 2", size = AuraIconSize.Toolbar, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = { insertMarkdown("**", "**") }) {
+                        AuraIcon(AuraIcons.Bold, contentDescription = "Bold", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("*", "*") }) {
+                        AuraIcon(AuraIcons.Italic, contentDescription = "Italic", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("~~", "~~") }) {
+                        AuraIcon(AuraIcons.Strikethrough, contentDescription = "Strikethrough", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("- [ ] ", "") }) {
+                        AuraIcon(AuraIcons.ListChecks, contentDescription = "Task Checkbox", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("- ", "") }) {
+                        AuraIcon(AuraIcons.ListView, contentDescription = "Bullet List", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("1. ", "") }) {
+                        AuraIcon(AuraIcons.ListOrdered, contentDescription = "Numbered List", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("> ", "") }) {
+                        AuraIcon(AuraIcons.Quote, contentDescription = "Quote", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("`", "`") }) {
+                        AuraIcon(AuraIcons.Code2, contentDescription = "Inline Code", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("\n```\n", "\n```\n") }) {
+                        AuraIcon(AuraIcons.FileCode2, contentDescription = "Code Block", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = {
+                        insertMarkdown("\n| Header 1 | Header 2 |\n|---|---|\n| Cell 1 | Cell 2 |\n")
+                    }) {
+                        AuraIcon(AuraIcons.Table2, contentDescription = "Table", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("\n---\n") }) {
+                        AuraIcon(AuraIcons.Minus, contentDescription = "Divider", size = AuraIconSize.Toolbar)
+                    }
+                    IconButton(onClick = { insertMarkdown("[", "](https://)") }) {
+                        AuraIcon(AuraIcons.Link2, contentDescription = "Link", size = AuraIconSize.Toolbar)
+                    }
+
+                    VerticalDivider(modifier = Modifier.height(24.dp).padding(horizontal = 4.dp))
+
+                    IconButton(onClick = {
+                        photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    }) {
+                        AuraIcon(AuraIcons.ImagePlus, contentDescription = "Add Photo", size = AuraIconSize.Toolbar, tint = MaterialTheme.colorScheme.secondary)
+                    }
+                    IconButton(onClick = { showAudioRecorder = true }) {
+                        AuraIcon(AuraIcons.Mic, contentDescription = "Record Voice Note", size = AuraIconSize.Toolbar, tint = MaterialTheme.colorScheme.tertiary)
+                    }
+                    IconButton(onClick = { docPicker.launch(arrayOf("*/*")) }) {
+                        AuraIcon(AuraIcons.Paperclip, contentDescription = "Attach Document", size = AuraIconSize.Toolbar, tint = MaterialTheme.colorScheme.primary)
+                    }
+                    IconButton(onClick = { showFindReplace = !showFindReplace }) {
+                        AuraIcon(
+                            AuraIcons.SearchCode,
+                            contentDescription = "Find & Replace",
+                            size = AuraIconSize.Toolbar,
+                            tint = if (showFindReplace) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                // Word count & Saved pill
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val words = remember(contentValue.text) {
+                        contentValue.text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.size
+                    }
+                    val chars = contentValue.text.length
+                    Text(
+                        text = "$words words · $chars characters",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        val words = remember(contentValue.text) {
-                            contentValue.text.trim().split(Regex("\\s+")).filter { it.isNotBlank() }.size
+                        if (isSavingLocal) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(12.dp),
+                                strokeWidth = 1.6.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = "Saving locally...",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            AuraIcon(
+                                AuraIcons.CheckCircle2,
+                                contentDescription = null,
+                                tint = neu.success,
+                                size = 14.dp
+                            )
+                            Text(
+                                text = "Saved locally",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = neu.success
+                            )
                         }
-                        val chars = contentValue.text.length
-                        Text(
-                            text = "$words words · $chars characters",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Text(
-                            text = "Auto-saved offline",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
                     }
                 }
             }
@@ -402,9 +477,8 @@ fun RichTextEditorScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
-            // Note Title
             TextField(
                 value = title,
                 onValueChange = { title = it },
@@ -426,43 +500,42 @@ fun RichTextEditorScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Tags input row
-            OutlinedTextField(
+            // Recessed Tags Field
+            AuraNeuTextField(
                 value = tags,
                 onValueChange = { tags = it },
-                placeholder = { Text("Tags (comma separated e.g. project, research, idea)") },
-                leadingIcon = { Icon(Icons.Default.Tag, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                placeholder = "Tags (comma separated, e.g. project, idea)",
+                leadingIcon = {
+                    AuraIcon(AuraIcons.Tag, contentDescription = null, size = AuraIconSize.Input, tint = MaterialTheme.colorScheme.primary)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
+                    .padding(vertical = 6.dp)
             )
 
-            // Attachments Carousel
             if (attachments.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     "Attachments (${attachments.size})",
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-                Spacer(Modifier.height(6.dp))
+                Spacer(Modifier.height(8.dp))
 
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     items(attachments, key = { it.id }) { att ->
                         AuraGlassCard(
                             modifier = Modifier
                                 .width(180.dp)
-                                .height(130.dp)
+                                .height(132.dp)
                         ) {
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .padding(8.dp),
+                                    .padding(10.dp),
                                 verticalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Row(
@@ -470,22 +543,22 @@ fun RichTextEditorScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
+                                    AuraIcon(
                                         when {
-                                            att.mimeType.startsWith("image/") -> Icons.Default.Image
-                                            att.mimeType.startsWith("audio/") -> Icons.Default.AudioFile
-                                            else -> Icons.Default.Description
+                                            att.mimeType.startsWith("image/") -> AuraIcons.Image
+                                            att.mimeType.startsWith("audio/") -> AuraIcons.AudioLines
+                                            else -> AuraIcons.FileText
                                         },
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(18.dp)
+                                        size = AuraIconSize.Button
                                     )
 
                                     IconButton(
                                         onClick = { onDeleteAttachment(att.id) },
                                         modifier = Modifier.size(24.dp)
                                     ) {
-                                        Icon(Icons.Default.Close, contentDescription = "Delete", modifier = Modifier.size(16.dp))
+                                        AuraIcon(AuraIcons.X, contentDescription = "Delete", size = AuraIconSize.Small)
                                     }
                                 }
 
@@ -495,19 +568,29 @@ fun RichTextEditorScreen(
                                         contentDescription = att.fileName,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(55.dp)
-                                            .clip(RoundedCornerShape(6.dp))
+                                            .height(54.dp)
+                                            .clip(RoundedCornerShape(8.dp))
                                     )
                                 } else if (att.mimeType.startsWith("audio/")) {
                                     val isThisPlaying = currentPlayingPath == att.localPath && mediaPlayer?.isPlaying == true
-                                    FilledTonalButton(
+                                    AuraNeuButton(
                                         onClick = { playAudio(att.localPath) },
-                                        modifier = Modifier.fillMaxWidth(),
-                                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 2.dp)
+                                        isAccent = isThisPlaying,
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Icon(if (isThisPlaying) Icons.Default.Pause else Icons.Default.PlayArrow, contentDescription = null)
+                                        AuraIcon(
+                                            if (isThisPlaying) AuraIcons.Pause else AuraIcons.Play,
+                                            contentDescription = null,
+                                            size = AuraIconSize.Small,
+                                            tint = if (isThisPlaying) Color.White else MaterialTheme.colorScheme.primary
+                                        )
                                         Spacer(Modifier.width(4.dp))
-                                        Text(if (isThisPlaying) "Playing" else "Play Voice")
+                                        Text(
+                                            if (isThisPlaying) "Playing" else "Play Voice",
+                                            fontSize = 12.sp,
+                                            color = if (isThisPlaying) Color.White else MaterialTheme.colorScheme.onSurface
+                                        )
                                     }
                                 } else {
                                     Text(
@@ -529,82 +612,137 @@ fun RichTextEditorScreen(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
 
-            // Main Content Area
-            TextField(
-                value = contentValue,
-                onValueChange = {
-                    undoStack.add(contentValue.text)
-                    redoStack.clear()
-                    contentValue = it
-                },
-                placeholder = {
-                    Text(
-                        "Start typing your note...\n\nSupports full Markdown formatting, tables, task lists, code blocks, and media attachments.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                    )
-                },
-                textStyle = MaterialTheme.typography.bodyLarge,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                ),
+            // Recessed Writing Surface Card
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .defaultMinSize(minHeight = 400.dp)
-            )
+                    .defaultMinSize(minHeight = 360.dp)
+                    .neuInset(
+                        cornerRadius = 20.dp,
+                        backgroundColor = neu.surfaceRecessed,
+                        shadowOffset = 3.5.dp,
+                        blurRadius = 7.dp
+                    )
+                    .padding(6.dp)
+            ) {
+                TextField(
+                    value = contentValue,
+                    onValueChange = {
+                        undoStack.add(contentValue.text)
+                        redoStack.clear()
+                        contentValue = it
+                    },
+                    placeholder = {
+                        Text(
+                            "Write in Markdown, checklists, tables, or attach media...",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+                        )
+                    },
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 340.dp)
+                )
+            }
         }
     }
 
-    // Category Selector Dialog
+    // Neumorphic Category Selector Dialog
     if (showCategoryDialog) {
-        AlertDialog(
-            onDismissRequest = { showCategoryDialog = false },
-            title = { Text("Select Category") },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Dialog(onDismissRequest = { showCategoryDialog = false }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .neuRaised(
+                        cornerRadius = 26.dp,
+                        backgroundColor = neu.surface,
+                        shadowOffset = 8.dp,
+                        blurRadius = 16.dp
+                    )
+            ) {
+                Column(
+                    modifier = Modifier.padding(22.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        "Select Space",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
                     categories.forEach { cat ->
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = if (selectedCategoryId == cat.id) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                        val isSelected = selectedCategoryId == cat.id
+                        val catColor = try {
+                            Color(android.graphics.Color.parseColor(cat.colorHex))
+                        } catch (_: Exception) {
+                            MaterialTheme.colorScheme.primary
+                        }
+                        Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .then(
+                                    if (isSelected) {
+                                        Modifier.neuInset(
+                                            cornerRadius = 14.dp,
+                                            backgroundColor = neu.surfaceRecessed,
+                                            shadowOffset = 2.5.dp,
+                                            blurRadius = 5.dp,
+                                            focusBorderColor = catColor.copy(alpha = 0.4f)
+                                        )
+                                    } else {
+                                        Modifier.neuRaised(
+                                            cornerRadius = 14.dp,
+                                            backgroundColor = neu.surface,
+                                            shadowOffset = 3.dp,
+                                            blurRadius = 6.dp
+                                        )
+                                    }
+                                )
                                 .clickable {
                                     selectedCategoryId = cat.id
                                     showCategoryDialog = false
                                 }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val catColor = try { Color(android.graphics.Color.parseColor(cat.colorHex)) } catch (_: Exception) { MaterialTheme.colorScheme.primary }
-                                Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .clip(CircleShape)
-                                        .background(catColor)
-                                )
-                                Spacer(Modifier.width(12.dp))
-                                Text(cat.name, style = MaterialTheme.typography.bodyMedium)
-                            }
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(catColor)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                cat.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showCategoryDialog = false }) {
+                            Text("Close")
                         }
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showCategoryDialog = false }) {
-                    Text("Close")
-                }
             }
-        )
+        }
     }
 
-    // Voice Recorder Modal
     if (showAudioRecorder) {
         AudioRecorderDialog(
             onDismiss = { showAudioRecorder = false },
