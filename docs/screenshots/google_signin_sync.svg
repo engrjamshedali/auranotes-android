@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="760" viewBox="0 0 380 760">
+  <defs>
+    <filter id="neuRaised" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="4" dy="4" stdDeviation="6" flood-color="#C3CDD9" flood-opacity="0.75"/>
+      <feDropShadow dx="-4" dy="-4" stdDeviation="6" flood-color="#FFFFFF" flood-opacity="0.9"/>
+    </filter>
+    <filter id="emblemShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#3B82F6" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="380" height="760" rx="30" fill="#EAEFF6" stroke="#D6DFEC" stroke-width="2.5"/>
+
+  <!-- Emblem -->
+  <rect x="148" y="68" width="84" height="84" rx="26" fill="#3B82F6" filter="url(#emblemShadow)"/>
+  <path d="M174 114l16-24 16 24-16 8z" fill="#FFFFFF"/>
+
+  <text x="190" y="186" fill="#1D2433" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="700">Welcome to AuraNotes</text>
+  <text x="190" y="210" fill="#5A6780" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5">Sign in with Google to unlock private Drive backups</text>
+  <text x="190" y="228" fill="#5A6780" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5">and seamless multi-device recovery.</text>
+
+  <!-- Feature Card -->
+  <rect x="24" y="256" width="332" height="276" rx="22" fill="#EDF2F8" stroke="#FFFFFF" stroke-opacity="0.65" filter="url(#neuRaised)"/>
+
+  <!-- Row 1: Private AppData Backup -->
+  <rect x="42" y="278" width="40" height="40" rx="13" fill="#E1E8F2"/>
+  <path d="M62 308s8-4 8-10v-7l-8-3-8 3v7c0 6 8 10 8 10z" fill="none" stroke="#22C55E" stroke-width="1.8"/>
+  <text x="94" y="294" fill="#1D2433" font-family="system-ui, sans-serif" font-size="13.5" font-weight="700">Private AppData Backup</text>
+  <text x="94" y="311" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11">Least-privilege drive.appdata scope —</text>
+  <text x="94" y="325" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11">zero access to your other Drive files.</text>
+
+  <!-- Row 2: Smart Night-Time Sync -->
+  <rect x="42" y="366" width="40" height="40" rx="13" fill="#E1E8F2"/>
+  <path d="M68 388a7 7 0 1 1-7-7 5.5 5.5 0 0 0 7 7z" fill="none" stroke="#3B82F6" stroke-width="1.8"/>
+  <text x="94" y="382" fill="#1D2433" font-family="system-ui, sans-serif" font-size="13.5" font-weight="700">Smart Night-Time Sync</text>
+  <text x="94" y="399" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11">Automatically backs up 12:00 AM – 5:00 AM</text>
+  <text x="94" y="413" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11">when charging, idle &amp; on unmetered Wi-Fi.</text>
+
+  <!-- Row 3: Offline-First Safety -->
+  <rect x="42" y="454" width="40" height="40" rx="13" fill="#E1E8F2"/>
+  <rect x="52" y="468" width="20" height="13" rx="3" fill="none" stroke="#6366F1" stroke-width="1.8"/>
+  <text x="94" y="470" fill="#1D2433" font-family="system-ui, sans-serif" font-size="13.5" font-weight="700">Offline-First Safety</text>
+  <text x="94" y="487" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11">Notes save locally immediately and sync</text>
+  <text x="94" y="501" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11">automatically once internet returns.</text>
+
+  <!-- Continue with Google Button -->
+  <rect x="24" y="560" width="332" height="54" rx="18" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <!-- Google G Emblem -->
+  <circle cx="114" cy="587" r="9" fill="none" stroke="#4285F4" stroke-width="3.2"/>
+  <path d="M107 581a9 9 0 0 1 13-1" fill="none" stroke="#EA4335" stroke-width="3.2"/>
+  <path d="M105 587a9 9 0 0 0 3 7" fill="none" stroke="#FBBC05" stroke-width="3.2"/>
+  <path d="M108 594a9 9 0 0 0 12 0" fill="none" stroke="#34A853" stroke-width="3.2"/>
+  <line x1="114" y1="587" x2="124" y2="587" stroke="#4285F4" stroke-width="3.2"/>
+  <text x="206" y="592" fill="#1D2433" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600">Continue with Google</text>
+
+  <!-- Continue Offline -->
+  <text x="190" y="646" fill="#5A6780" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="600">Continue Offline (Local Vault Only)</text>
+</svg>

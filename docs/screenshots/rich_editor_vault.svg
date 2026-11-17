@@ -1,66 +1,72 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="380" height="760" viewBox="0 0 380 760">
   <defs>
-    <linearGradient id="bgVault" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#090D16"/>
-      <stop offset="100%" stop-color="#0E1525"/>
-    </linearGradient>
+    <filter id="neuRaised" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="4" dy="4" stdDeviation="6" flood-color="#C3CDD9" flood-opacity="0.75"/>
+      <feDropShadow dx="-4" dy="-4" stdDeviation="6" flood-color="#FFFFFF" flood-opacity="0.9"/>
+    </filter>
+    <filter id="neuRaisedSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2.5" dy="2.5" stdDeviation="4" flood-color="#C3CDD9" flood-opacity="0.7"/>
+      <feDropShadow dx="-2.5" dy="-2.5" stdDeviation="4" flood-color="#FFFFFF" flood-opacity="0.95"/>
+    </filter>
   </defs>
 
-  <rect width="380" height="760" rx="28" fill="url(#bgVault)" stroke="#23324F" stroke-width="3"/>
+  <rect width="380" height="760" rx="30" fill="#EAEFF6" stroke="#D6DFEC" stroke-width="2.5"/>
 
-  <!-- Status Bar -->
-  <text x="26" y="28" fill="#94A3B8" font-family="sans-serif" font-size="12" font-weight="bold">11:36</text>
-  <circle cx="330" cy="24" r="5" fill="#10B981"/>
-  <rect x="342" y="19" width="18" height="10" rx="2" fill="#94A3B8"/>
+  <!-- Top Navigation & Auto-Save Status -->
+  <rect x="20" y="34" width="42" height="42" rx="13" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <path d="M46 55H34m0 0l5-5m-5 5l5 5" fill="none" stroke="#1D2433" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="74" y="60" fill="#1D2433" font-family="system-ui, sans-serif" font-size="16" font-weight="700">Personal</text>
 
-  <!-- Top Bar -->
-  <text x="24" y="66" fill="#F8FAFC" font-family="sans-serif" font-size="18" font-weight="bold">←  Personal</text>
-  <text x="235" y="66" fill="#94A3B8" font-family="sans-serif" font-size="16">↶   ↷   📌   ❤️   📁</text>
+  <!-- Undo / Redo / Pin / Favorite / Share -->
+  <rect x="218" y="36" width="36" height="36" rx="11" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <rect x="262" y="36" width="36" height="36" rx="11" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <rect x="306" y="36" width="54" height="36" rx="11" fill="#E1E8F2"/>
+  <circle cx="318" cy="54" r="3" fill="#22C55E"/>
+  <text x="325" y="58" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10" font-weight="600">Saved</text>
 
   <!-- Note Title -->
-  <text x="24" y="114" fill="#F8FAFC" font-family="sans-serif" font-size="22" font-weight="bold">✨ Project Architecture</text>
+  <text x="22" y="114" fill="#1D2433" font-family="system-ui, sans-serif" font-size="22" font-weight="700">Project Architecture v2.0</text>
 
-  <!-- Tags Input -->
-  <rect x="20" y="130" width="340" height="40" rx="10" fill="#101726" stroke="#23324F"/>
-  <text x="36" y="155" fill="#818CF8" font-family="sans-serif" font-size="12">#  architecture, research, audio, offline</text>
+  <!-- Recessed Tags Input Well -->
+  <rect x="20" y="128" width="340" height="40" rx="14" fill="#E1E8F2"/>
+  <text x="36" y="152" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="12" font-weight="600"># architecture, cloud, audio, offline</text>
 
-  <!-- Attachments Section -->
-  <text x="24" y="194" fill="#6366F1" font-family="sans-serif" font-size="12" font-weight="bold">Attachments (2)</text>
+  <!-- Attachments Header -->
+  <text x="22" y="192" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700">Attachments (2)</text>
 
   <!-- Attachment 1: Voice Recording Card -->
-  <rect x="20" y="204" width="164" height="108" rx="14" fill="#141D33" stroke="#23324F"/>
-  <text x="34" y="226" fill="#38BDF8" font-family="sans-serif" font-size="12" font-weight="bold">🎙️ Voice Note</text>
-  <rect x="34" y="240" width="136" height="32" rx="8" fill="#1E1B4B"/>
-  <text x="54" y="260" fill="#818CF8" font-family="sans-serif" font-size="12" font-weight="bold">▶  Play (00:42)</text>
-  <text x="34" y="296" fill="#94A3B8" font-family="sans-serif" font-size="10">Voice Note (42s).m4a</text>
+  <rect x="20" y="204" width="164" height="106" rx="18" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <text x="34" y="228" fill="#1D2433" font-family="system-ui, sans-serif" font-size="12" font-weight="700">Voice Note</text>
+  <rect x="34" y="242" width="136" height="32" rx="10" fill="#3B82F6"/>
+  <text x="102" y="262" fill="#FFFFFF" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11.5" font-weight="700">Play · 00:42</text>
+  <text x="34" y="295" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10">meeting_rec.m4a</text>
 
-  <!-- Attachment 2: Diagram Image Card -->
-  <rect x="196" y="204" width="164" height="108" rx="14" fill="#141D33" stroke="#23324F"/>
-  <text x="210" y="226" fill="#10B981" font-family="sans-serif" font-size="12" font-weight="bold">🖼️ Image Vault</text>
-  <rect x="210" y="236" width="136" height="42" rx="6" fill="#0F172A" stroke="#38BDF8" stroke-dasharray="3,3"/>
-  <text x="235" y="261" fill="#38BDF8" font-family="sans-serif" font-size="11">system_diagram.png</text>
-  <text x="210" y="296" fill="#94A3B8" font-family="sans-serif" font-size="10">284 KB · Local Vault</text>
+  <!-- Attachment 2: Image Card -->
+  <rect x="196" y="204" width="164" height="106" rx="18" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <text x="210" y="228" fill="#1D2433" font-family="system-ui, sans-serif" font-size="12" font-weight="700">Diagram Image</text>
+  <rect x="210" y="240" width="136" height="38" rx="10" fill="#E1E8F2"/>
+  <text x="278" y="263" fill="#3B82F6" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10.5" font-weight="600">sync_flow.png</text>
+  <text x="210" y="295" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10">284 KB · Local Vault</text>
 
-  <!-- Rich Markdown Content Area -->
-  <text x="24" y="346" fill="#F8FAFC" font-family="sans-serif" font-size="17" font-weight="bold"># Core System Goals</text>
-  <text x="24" y="372" fill="#94A3B8" font-family="sans-serif" font-size="13">AuraNotes stores all notes, rich markdown, and</text>
-  <text x="24" y="392" fill="#94A3B8" font-family="sans-serif" font-size="13">binary media inside private app storage.</text>
+  <!-- Markdown Content Card -->
+  <rect x="20" y="328" width="340" height="304" rx="22" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <text x="38" y="362" fill="#1D2433" font-family="system-ui, sans-serif" font-size="16" font-weight="700"># Offline-First Sync Core</text>
+  <text x="38" y="388" fill="#5A6780" font-family="system-ui, sans-serif" font-size="12.5">Edits commit locally to Room SQLite with a</text>
+  <text x="38" y="407" fill="#5A6780" font-family="system-ui, sans-serif" font-size="12.5">380ms debounce and flush cleanly on exit.</text>
 
-  <text x="24" y="426" fill="#34D399" font-family="monospace" font-size="13">- [x] Room SQLite Authoritative DB</text>
-  <text x="24" y="450" fill="#34D399" font-family="monospace" font-size="13">- [x] Zero-Permission Photo Picker</text>
-  <text x="24" y="474" fill="#34D399" font-family="monospace" font-size="13">- [x] Voice Note M4A Recorder</text>
-  <text x="24" y="498" fill="#F8FAFC" font-family="monospace" font-size="13">- [ ] Export .auranotes Archive</text>
+  <text x="38" y="442" fill="#22C55E" font-family="monospace" font-size="12">[x] Room SQLite Authoritative DB</text>
+  <text x="38" y="466" fill="#22C55E" font-family="monospace" font-size="12">[x] Zero-Permission Photo Picker</text>
+  <text x="38" y="490" fill="#22C55E" font-family="monospace" font-size="12">[x] Drive AppData SHA-256 Backup</text>
+  <text x="38" y="514" fill="#1D2433" font-family="monospace" font-size="12">[ ] Export .auranotes Archive</text>
 
-  <rect x="24" y="520" width="332" height="58" rx="8" fill="#101726" stroke="#6366F1"/>
-  <text x="38" y="544" fill="#818CF8" font-family="monospace" font-size="11">| Module       | Status   | Engine      |</text>
-  <text x="38" y="564" fill="#F8FAFC" font-family="monospace" font-size="11">| Media Vault  | Active   | Local Files |</text>
+  <rect x="38" y="536" width="304" height="58" rx="12" fill="#E1E8F2"/>
+  <text x="52" y="560" fill="#3B82F6" font-family="monospace" font-size="10.5" font-weight="700">| Engine       | Status | Isolation     |</text>
+  <text x="52" y="579" fill="#1D2433" font-family="monospace" font-size="10.5">| Media Vault  | Active | app-private   |</text>
 
-  <!-- Rich Text Formatting Toolbar -->
-  <rect x="4" y="660" width="372" height="48" fill="#141D33" stroke="#23324F"/>
-  <text x="20" y="689" fill="#818CF8" font-family="sans-serif" font-size="14" font-weight="bold">H1    H2    B     I     S     ☑️    •     1.    "    &lt;/&gt;    🖼️    🎙️    📎</text>
+  <text x="38" y="616" fill="#8895AC" font-family="system-ui, sans-serif" font-size="10.5">48 words · 312 chars</text>
+  <text x="252" y="616" fill="#22C55E" font-family="system-ui, sans-serif" font-size="10.5" font-weight="700">Saved locally</text>
 
-  <!-- Word Count Status Footer -->
-  <rect x="4" y="708" width="372" height="48" rx="18" fill="#101726"/>
-  <text x="24" y="736" fill="#94A3B8" font-family="sans-serif" font-size="11">48 words · 312 characters</text>
-  <text x="255" y="736" fill="#6366F1" font-family="sans-serif" font-size="11" font-weight="bold">✓ Auto-saved offline</text>
+  <!-- Neumorphic Lucide Formatting Toolbar -->
+  <rect x="18" y="684" width="344" height="56" rx="22" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <text x="36" y="717" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="13" font-weight="700">H1   H2   B   I   S   Check   List   Table   Mic   Media</text>
 </svg>

@@ -1,118 +1,110 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="380" height="760" viewBox="0 0 380 760">
   <defs>
-    <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#090D16"/>
-      <stop offset="100%" stop-color="#0E1525"/>
-    </linearGradient>
-    <linearGradient id="cardGrad1" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#141D33"/>
-      <stop offset="100%" stop-color="#101726"/>
-    </linearGradient>
-    <linearGradient id="accentGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#6366F1"/>
-      <stop offset="100%" stop-color="#38BDF8"/>
-    </linearGradient>
+    <filter id="neuRaised" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="4" dy="4" stdDeviation="6" flood-color="#C3CDD9" flood-opacity="0.75"/>
+      <feDropShadow dx="-4" dy="-4" stdDeviation="6" flood-color="#FFFFFF" flood-opacity="0.9"/>
+    </filter>
+    <filter id="neuRaisedSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2.5" dy="2.5" stdDeviation="4" flood-color="#C3CDD9" flood-opacity="0.7"/>
+      <feDropShadow dx="-2.5" dy="-2.5" stdDeviation="4" flood-color="#FFFFFF" flood-opacity="0.95"/>
+    </filter>
+    <filter id="fabGlow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3B82F6" flood-opacity="0.4"/>
+    </filter>
   </defs>
 
-  <!-- Phone Frame Background -->
-  <rect width="380" height="760" rx="28" fill="url(#bgGrad)" stroke="#23324F" stroke-width="3"/>
+  <!-- Soft UI Pastel Background -->
+  <rect width="380" height="760" rx="30" fill="#EAEFF6" stroke="#D6DFEC" stroke-width="2.5"/>
 
-  <!-- Status Bar -->
-  <text x="26" y="28" fill="#94A3B8" font-family="sans-serif" font-size="12" font-weight="bold">11:32</text>
-  <circle cx="330" cy="24" r="5" fill="#10B981"/>
-  <rect x="342" y="19" width="18" height="10" rx="2" fill="#94A3B8"/>
+  <!-- Top Header -->
+  <rect x="20" y="34" width="44" height="44" rx="14" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <path d="M33 49h18M33 56h18M33 63h18" stroke="#1D2433" stroke-width="2" stroke-linecap="round"/>
 
-  <!-- Top App Bar -->
-  <text x="24" y="68" fill="#F8FAFC" font-family="sans-serif" font-size="24" font-weight="bold">AuraNotes</text>
-  <rect x="155" y="52" width="56" height="20" rx="10" fill="#1E1B4B" stroke="#6366F1" stroke-width="1"/>
-  <text x="164" y="66" fill="#818CF8" font-family="sans-serif" font-size="10" font-weight="bold">OFFLINE</text>
-  <text x="24" y="86" fill="#94A3B8" font-family="sans-serif" font-size="12">4 notes · Private Vault</text>
+  <text x="76" y="54" fill="#1D2433" font-family="system-ui, sans-serif" font-size="22" font-weight="700">AuraNotes</text>
 
-  <!-- Command Palette & Grid Icons -->
-  <rect x="296" y="50" width="32" height="32" rx="8" fill="#182238"/>
-  <text x="305" y="71" fill="#6366F1" font-family="monospace" font-size="14" font-weight="bold">&gt;_</text>
-  <rect x="334" y="50" width="32" height="32" rx="8" fill="#182238"/>
-  <text x="344" y="71" fill="#F8FAFC" font-family="sans-serif" font-size="14">⊞</text>
+  <!-- Live Cloud Sync Status Pill -->
+  <rect x="190" y="37" width="70" height="22" rx="10" fill="#E1E8F2" stroke="#D6DFEC" stroke-width="1"/>
+  <circle cx="201" cy="48" r="3.5" fill="#22C55E"/>
+  <text x="209" y="52" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5" font-weight="600">Synced</text>
 
-  <!-- Search Bar -->
-  <rect x="20" y="102" width="340" height="44" rx="14" fill="#101726" stroke="#23324F" stroke-width="1.5"/>
-  <text x="40" y="129" fill="#64748B" font-family="sans-serif" font-size="13">🔍  Search notes, code, tags...</text>
+  <text x="76" y="72" fill="#5A6780" font-family="system-ui, sans-serif" font-size="12">6 notes</text>
 
-  <!-- Filter Chips -->
-  <rect x="20" y="158" width="82" height="30" rx="8" fill="#6366F1"/>
-  <text x="34" y="177" fill="#FFFFFF" font-family="sans-serif" font-size="12" font-weight="bold">All Notes</text>
+  <!-- Single Clean Layout Toggle Button (No Cluttered Command Icon) -->
+  <rect x="316" y="34" width="44" height="44" rx="14" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <rect x="328" y="46" width="8" height="8" rx="2" fill="none" stroke="#1D2433" stroke-width="1.8"/>
+  <rect x="340" y="46" width="8" height="8" rx="2" fill="none" stroke="#1D2433" stroke-width="1.8"/>
+  <rect x="328" y="58" width="8" height="8" rx="2" fill="none" stroke="#1D2433" stroke-width="1.8"/>
+  <rect x="340" y="58" width="8" height="8" rx="2" fill="none" stroke="#1D2433" stroke-width="1.8"/>
 
-  <rect x="110" y="158" width="68" height="30" rx="8" fill="#101726" stroke="#23324F"/>
-  <text x="125" y="177" fill="#94A3B8" font-family="sans-serif" font-size="12">Pinned</text>
+  <!-- Recessed Search Well -->
+  <rect x="20" y="94" width="340" height="44" rx="15" fill="#E1E8F2" stroke="#D6DFEC" stroke-width="1.2"/>
+  <circle cx="40" cy="116" r="6" fill="none" stroke="#3B82F6" stroke-width="1.8"/>
+  <line x1="45" y1="121" x2="49" y2="125" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round"/>
+  <text x="58" y="120" fill="#8895AC" font-family="system-ui, sans-serif" font-size="13">Search notes, code, or tags...</text>
 
-  <rect x="186" y="158" width="86" height="30" rx="8" fill="#101726" stroke="#23324F"/>
-  <text x="200" y="177" fill="#94A3B8" font-family="sans-serif" font-size="12">Code Studio</text>
+  <!-- Note Card 1 (Pinned, Raised Soft UI) -->
+  <rect x="20" y="156" width="340" height="148" rx="22" fill="#EDF2F8" stroke="#6366F1" stroke-opacity="0.35" stroke-width="1.2" filter="url(#neuRaised)"/>
+  <rect x="36" y="172" width="82" height="22" rx="9" fill="#E1E8F2"/>
+  <circle cx="46" cy="183" r="3.5" fill="#6366F1"/>
+  <text x="55" y="187" fill="#6366F1" font-family="system-ui, sans-serif" font-size="10.5" font-weight="600">Personal</text>
+  <!-- Pin & Heart Lucide Indicators -->
+  <path d="M300 177v6m-3-2h6" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M324 185l-4.5-4.3a2.6 2.6 0 0 1 3.7-3.7l.8.8.8-.8a2.6 2.6 0 0 1 3.7 3.7z" fill="none" stroke="#F43F5E" stroke-width="1.6"/>
+  <circle cx="342" cy="181" r="1.2" fill="#5A6780"/><circle cx="346" cy="181" r="1.2" fill="#5A6780"/>
 
-  <rect x="280" y="158" width="78" height="30" rx="8" fill="#101726" stroke="#23324F"/>
-  <text x="292" y="177" fill="#94A3B8" font-family="sans-serif" font-size="12">Checklists</text>
+  <text x="36" y="216" fill="#1D2433" font-family="system-ui, sans-serif" font-size="16" font-weight="700">Project Architecture v2.0</text>
+  <text x="36" y="238" fill="#5A6780" font-family="system-ui, sans-serif" font-size="12.5">Local Room vault with debounced auto-save &amp;</text>
+  <text x="36" y="256" fill="#5A6780" font-family="system-ui, sans-serif" font-size="12.5">night-time Google Drive AppData sync.</text>
+  <text x="36" y="286" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="11" font-weight="600">#architecture #cloud #softui</text>
+  <text x="274" y="286" fill="#8895AC" font-family="system-ui, sans-serif" font-size="10.5">Nov 16 · 10:15</text>
 
-  <!-- Category Chips -->
-  <rect x="20" y="198" width="96" height="26" rx="13" fill="#1E1B4B" stroke="#6366F1"/>
-  <text x="32" y="215" fill="#818CF8" font-family="sans-serif" font-size="11" font-weight="bold">All Categories</text>
+  <!-- Note Card 2 (Code Studio Note) -->
+  <rect x="20" y="320" width="340" height="148" rx="22" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <rect x="36" y="336" width="96" height="22" rx="9" fill="#E1E8F2"/>
+  <circle cx="46" cy="347" r="3.5" fill="#3B82F6"/>
+  <text x="55" y="351" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="10.5" font-weight="600">Programming</text>
+  <rect x="138" y="336" width="60" height="22" rx="9" fill="#E1E8F2"/>
+  <text x="148" y="351" fill="#6366F1" font-family="monospace" font-size="10" font-weight="700">PYTHON</text>
 
-  <rect x="124" y="198" width="64" height="26" rx="13" fill="#101726" stroke="#23324F"/>
-  <circle cx="137" cy="211" r="4" fill="#6366F1"/>
-  <text x="147" y="215" fill="#94A3B8" font-family="sans-serif" font-size="11">Study</text>
+  <text x="36" y="380" fill="#1D2433" font-family="system-ui, sans-serif" font-size="16" font-weight="700">Analytics Engine.py</text>
+  <text x="36" y="402" fill="#5A6780" font-family="monospace" font-size="11.5">def compute_sync_delta(notes):</text>
+  <text x="36" y="420" fill="#5A6780" font-family="monospace" font-size="11.5">    return [n for n in notes if n.dirty]</text>
+  <text x="36" y="450" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="11" font-weight="600">#python #analytics #studio</text>
+  <text x="274" y="450" fill="#8895AC" font-family="system-ui, sans-serif" font-size="10.5">Nov 16 · 09:40</text>
 
-  <rect x="196" y="198" width="98" height="26" rx="13" fill="#101726" stroke="#23324F"/>
-  <circle cx="209" cy="211" r="4" fill="#38BDF8"/>
-  <text x="219" y="215" fill="#94A3B8" font-family="sans-serif" font-size="11">Programming</text>
+  <!-- Note Card 3 (Checklist Note) -->
+  <rect x="20" y="484" width="340" height="132" rx="22" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <rect x="36" y="500" width="76" height="22" rx="9" fill="#E1E8F2"/>
+  <circle cx="46" cy="511" r="3.5" fill="#10B981"/>
+  <text x="55" y="515" fill="#10B981" font-family="system-ui, sans-serif" font-size="10.5" font-weight="600">Ideas</text>
+  <rect x="118" y="500" width="76" height="22" rx="9" fill="#E1E8F2"/>
+  <text x="128" y="515" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="10" font-weight="700">CHECKLIST</text>
 
-  <rect x="302" y="198" width="66" height="26" rx="13" fill="#101726" stroke="#23324F"/>
-  <circle cx="315" cy="211" r="4" fill="#14B8A6"/>
-  <text x="325" y="215" fill="#94A3B8" font-family="sans-serif" font-size="11">Tasks</text>
+  <text x="36" y="544" fill="#1D2433" font-family="system-ui, sans-serif" font-size="16" font-weight="700">Release Checklist</text>
+  <text x="36" y="566" fill="#5A6780" font-family="system-ui, sans-serif" font-size="12.5">[x] Drive AppData OAuth 2.0 &amp; WorkManager</text>
+  <text x="36" y="596" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="11" font-weight="600">#release #tasks</text>
+  <text x="274" y="596" fill="#8895AC" font-family="system-ui, sans-serif" font-size="10.5">Nov 15 · 21:10</text>
 
-  <!-- Card 1: Welcome Note -->
-  <rect x="20" y="238" width="340" height="130" rx="16" fill="url(#cardGrad1)" stroke="#10B981" stroke-width="1.2"/>
-  <rect x="34" y="252" width="58" height="18" rx="6" fill="#064E3B"/>
-  <text x="42" y="265" fill="#34D399" font-family="sans-serif" font-size="10" font-weight="bold">Personal</text>
-  <text x="310" y="266" fill="#6366F1" font-family="sans-serif" font-size="14">📌 ❤️</text>
+  <!-- Floating Accent FAB -->
+  <circle cx="326" cy="634" r="28" fill="#3B82F6" filter="url(#fabGlow)"/>
+  <path d="M316 634h20M326 624v20" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
 
-  <text x="34" y="290" fill="#F8FAFC" font-family="sans-serif" font-size="16" font-weight="bold">✨ Welcome to AuraNotes</text>
-  <text x="34" y="312" fill="#94A3B8" font-family="sans-serif" font-size="12">The Premium Offline Notes, Media Vault &amp; Universal</text>
-  <text x="34" y="328" fill="#94A3B8" font-family="sans-serif" font-size="12">Code IDE combining Google Keep, Notion &amp; VS Code...</text>
-  <text x="34" y="352" fill="#6366F1" font-family="sans-serif" font-size="11">#welcome #guide #auranotes</text>
-  <text x="260" y="352" fill="#64748B" font-family="sans-serif" font-size="10">Oct 22 · 11:30</text>
+  <!-- Floating Neumorphic Bottom Dock -->
+  <rect x="18" y="684" width="344" height="58" rx="26" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <!-- Active Recessed Pill: Library -->
+  <rect x="26" y="691" width="80" height="44" rx="19" fill="#E1E8F2" stroke="#3B82F6" stroke-opacity="0.25"/>
+  <path d="M58 703h6l2 2h8v10H58z" fill="none" stroke="#3B82F6" stroke-width="1.8" stroke-linejoin="round"/>
+  <text x="48" y="728" fill="#3B82F6" font-family="system-ui, sans-serif" font-size="10.5" font-weight="700">Library</text>
 
-  <!-- Card 2: Python Code Note -->
-  <rect x="20" y="380" width="340" height="130" rx="16" fill="url(#cardGrad1)" stroke="#38BDF8" stroke-width="1.2"/>
-  <rect x="34" y="394" width="78" height="18" rx="6" fill="#0C4A6E"/>
-  <text x="42" y="407" fill="#38BDF8" font-family="sans-serif" font-size="10" font-weight="bold">Programming</text>
-  <rect x="118" y="394" width="64" height="18" rx="6" fill="#1E1B4B"/>
-  <text x="125" y="407" fill="#818CF8" font-family="monospace" font-size="10" font-weight="bold">&lt;PYTHON&gt;</text>
+  <!-- Media -->
+  <rect x="142" y="702" width="14" height="12" rx="2" fill="none" stroke="#5A6780" stroke-width="1.8"/>
+  <text x="134" y="728" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5" font-weight="500">Media</text>
 
-  <text x="34" y="432" fill="#F8FAFC" font-family="sans-serif" font-size="16" font-weight="bold">🐍 Python Analytics &amp; Math Engine</text>
-  <text x="34" y="454" fill="#94A3B8" font-family="monospace" font-size="11">def calculate_aura_metrics():</text>
-  <text x="34" y="470" fill="#94A3B8" font-family="monospace" font-size="11">    scores = [x**2 for x in range(1, 8)]</text>
-  <text x="34" y="494" fill="#6366F1" font-family="sans-serif" font-size="11">#python #algorithm #demo</text>
-  <text x="260" y="494" fill="#64748B" font-family="sans-serif" font-size="10">Oct 22 · 11:31</text>
+  <!-- Backups -->
+  <path d="M225 714a5 5 0 0 1 1-9.8 5.5 5.5 0 0 1 10.6 1A4.5 4.5 0 0 1 236 714z" fill="none" stroke="#5A6780" stroke-width="1.8"/>
+  <text x="211" y="728" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5" font-weight="500">Backups</text>
 
-  <!-- Card 3: Web Sandbox Note -->
-  <rect x="20" y="522" width="340" height="122" rx="16" fill="url(#cardGrad1)" stroke="#23324F" stroke-width="1"/>
-  <rect x="34" y="536" width="78" height="18" rx="6" fill="#0C4A6E"/>
-  <text x="42" y="549" fill="#38BDF8" font-family="sans-serif" font-size="10" font-weight="bold">Programming</text>
-  <rect x="118" y="536" width="54" height="18" rx="6" fill="#1E1B4B"/>
-  <text x="126" y="549" fill="#818CF8" font-family="monospace" font-size="10" font-weight="bold">&lt;HTML&gt;</text>
-
-  <text x="34" y="574" fill="#F8FAFC" font-family="sans-serif" font-size="16" font-weight="bold">⚡ Interactive Neon Canvas (HTML/JS)</text>
-  <text x="34" y="596" fill="#94A3B8" font-family="monospace" font-size="11">&lt;!DOCTYPE html&gt; &lt;style&gt; body { background: #090D16; }</text>
-  <text x="34" y="628" fill="#6366F1" font-family="sans-serif" font-size="11">#html #javascript #web</text>
-  <text x="260" y="628" fill="#64748B" font-family="sans-serif" font-size="10">Oct 22 · 11:32</text>
-
-  <!-- Floating Action Button -->
-  <circle cx="322" cy="642" r="26" fill="url(#accentGrad)"/>
-  <text x="314" y="651" fill="#FFFFFF" font-family="sans-serif" font-size="26" font-weight="bold">+</text>
-
-  <!-- Bottom Navigation Bar -->
-  <rect x="4" y="690" width="372" height="66" rx="20" fill="#101726"/>
-  <rect x="30" y="700" width="60" height="28" rx="14" fill="#1E1B4B"/>
-  <text x="43" y="744" fill="#818CF8" font-family="sans-serif" font-size="11" font-weight="bold">Notes</text>
-  <text x="135" y="744" fill="#94A3B8" font-family="sans-serif" font-size="11">Vault</text>
-  <text x="218" y="744" fill="#94A3B8" font-family="sans-serif" font-size="11">Backups</text>
-  <text x="305" y="744" fill="#94A3B8" font-family="sans-serif" font-size="11">Settings</text>
+  <!-- Settings -->
+  <circle cx="316" cy="708" r="5" fill="none" stroke="#5A6780" stroke-width="1.8"/>
+  <text x="296" y="728" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5" font-weight="500">Settings</text>
 </svg>

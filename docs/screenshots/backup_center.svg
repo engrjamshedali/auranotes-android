@@ -1,83 +1,94 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="380" height="760" viewBox="0 0 380 760">
   <defs>
-    <linearGradient id="bgBackup" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#090D16"/>
-      <stop offset="100%" stop-color="#0E1525"/>
-    </linearGradient>
-    <linearGradient id="btnGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#6366F1"/>
-      <stop offset="100%" stop-color="#4F46E5"/>
-    </linearGradient>
+    <filter id="neuRaised" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="4" dy="4" stdDeviation="6" flood-color="#C3CDD9" flood-opacity="0.75"/>
+      <feDropShadow dx="-4" dy="-4" stdDeviation="6" flood-color="#FFFFFF" flood-opacity="0.9"/>
+    </filter>
+    <filter id="neuRaisedSm" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2.5" dy="2.5" stdDeviation="4" flood-color="#C3CDD9" flood-opacity="0.7"/>
+      <feDropShadow dx="-2.5" dy="-2.5" stdDeviation="4" flood-color="#FFFFFF" flood-opacity="0.95"/>
+    </filter>
   </defs>
 
-  <rect width="380" height="760" rx="28" fill="url(#bgBackup)" stroke="#23324F" stroke-width="3"/>
-
-  <!-- Status Bar -->
-  <text x="26" y="28" fill="#94A3B8" font-family="sans-serif" font-size="12" font-weight="bold">11:38</text>
-  <circle cx="330" cy="24" r="5" fill="#10B981"/>
-  <rect x="342" y="19" width="18" height="10" rx="2" fill="#94A3B8"/>
+  <rect width="380" height="760" rx="30" fill="#EAEFF6" stroke="#D6DFEC" stroke-width="2.5"/>
 
   <!-- Header -->
-  <text x="24" y="66" fill="#F8FAFC" font-family="sans-serif" font-size="22" font-weight="bold">Backup &amp; Migration</text>
-  <text x="24" y="86" fill="#94A3B8" font-family="sans-serif" font-size="11">Zero cloud required · Portable .auranotes packages</text>
+  <rect x="20" y="34" width="42" height="42" rx="13" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <path d="M32 49h18M32 55h18M32 61h18" stroke="#1D2433" stroke-width="2" stroke-linecap="round"/>
+  <text x="74" y="54" fill="#1D2433" font-family="system-ui, sans-serif" font-size="19" font-weight="700">Backups &amp; Cloud Sync</text>
+  <text x="74" y="72" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11.5">Google Drive AppData &amp; portable archives</text>
 
-  <!-- Main Backup Card -->
-  <rect x="20" y="104" width="340" height="206" rx="16" fill="#141D33" stroke="#23324F" stroke-width="1.5"/>
-  <text x="36" y="132" fill="#F8FAFC" font-family="sans-serif" font-size="15" font-weight="bold">☁️  AuraNotes Portable Backup</text>
-  <text x="36" y="156" fill="#94A3B8" font-family="sans-serif" font-size="12">Export your complete database, notes, rich-text,</text>
-  <text x="36" y="174" fill="#94A3B8" font-family="sans-serif" font-size="12">categories, and media vault into a verified</text>
-  <text x="36" y="192" fill="#94A3B8" font-family="sans-serif" font-size="12">.auranotes ZIP archive with SHA-256 checksums.</text>
+  <!-- Google Drive Sync Card -->
+  <rect x="20" y="94" width="340" height="278" rx="22" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <rect x="36" y="112" width="36" height="36" rx="11" fill="#F5F8FC" filter="url(#neuRaisedSm)"/>
+  <path d="M47 134a4.5 4.5 0 0 1 1-8.8 5 5 0 0 1 9.6 1A4 4 0 0 1 57 134z" fill="none" stroke="#3B82F6" stroke-width="1.8"/>
+  <text x="82" y="128" fill="#1D2433" font-family="system-ui, sans-serif" font-size="14.5" font-weight="700">Google Drive Sync</text>
+  <text x="82" y="143" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5">Private appDataFolder</text>
 
-  <!-- Create & Restore Buttons -->
-  <rect x="36" y="208" width="148" height="38" rx="12" fill="url(#btnGrad)"/>
-  <text x="58" y="232" fill="#FFFFFF" font-family="sans-serif" font-size="12" font-weight="bold">↑ Create Backup</text>
+  <rect x="276" y="118" width="68" height="22" rx="10" fill="#E1E8F2"/>
+  <circle cx="287" cy="129" r="3.5" fill="#22C55E"/>
+  <text x="295" y="133" fill="#22C55E" font-family="system-ui, sans-serif" font-size="10.5" font-weight="700">Synced</text>
 
-  <rect x="196" y="208" width="148" height="38" rx="12" fill="#1E1B4B" stroke="#6366F1"/>
-  <text x="216" y="232" fill="#818CF8" font-family="sans-serif" font-size="12" font-weight="bold">↓ Restore Backup</text>
+  <!-- Account Recessed Well -->
+  <rect x="36" y="162" width="308" height="54" rx="16" fill="#E1E8F2"/>
+  <circle cx="62" cy="189" r="16" fill="#3B82F6"/>
+  <text x="62" y="194" fill="#FFFFFF" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" font-weight="700">JA</text>
+  <text x="88" y="185" fill="#1D2433" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700">Jamshed Ali</text>
+  <text x="88" y="201" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10">engr.jamshed.ali@gmail.com</text>
+  <rect x="272" y="173" width="30" height="30" rx="10" fill="#EDF2F8"/>
+  <rect x="306" y="173" width="30" height="30" rx="10" fill="#EDF2F8"/>
 
-  <!-- Export Ready Banner -->
-  <rect x="36" y="256" width="308" height="40" rx="10" fill="#1E1B4B"/>
-  <text x="48" y="274" fill="#F8FAFC" font-family="sans-serif" font-size="11" font-weight="bold">✓ AuraNotes_Backup_20261022.auranotes</text>
-  <text x="48" y="289" fill="#818CF8" font-family="sans-serif" font-size="10">SHA-256 Verified · Ready to Share</text>
+  <!-- Enable Toggle -->
+  <text x="36" y="238" fill="#1D2433" font-family="system-ui, sans-serif" font-size="12.5" font-weight="600">Enable Google Drive Backup</text>
+  <text x="36" y="253" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10">Least-privilege app folder sync active</text>
+  <rect x="300" y="226" width="44" height="24" rx="12" fill="#3B82F6"/>
+  <circle cx="332" cy="238" r="9" fill="#FFFFFF"/>
 
-  <!-- Scheduler Card -->
-  <rect x="20" y="324" width="340" height="120" rx="16" fill="#141D33" stroke="#23324F" stroke-width="1.5"/>
-  <text x="36" y="352" fill="#F8FAFC" font-family="sans-serif" font-size="15" font-weight="bold">🕒  Automatic Backup Scheduler</text>
-  <text x="36" y="374" fill="#94A3B8" font-family="sans-serif" font-size="11">Periodic snapshots kept safe in local storage.</text>
+  <!-- Stats Wells -->
+  <rect x="36" y="268" width="148" height="46" rx="13" fill="#E1E8F2"/>
+  <text x="48" y="285" fill="#5A6780" font-family="system-ui, sans-serif" font-size="9.5">Last Cloud Backup</text>
+  <text x="48" y="303" fill="#1D2433" font-family="system-ui, sans-serif" font-size="11.5" font-weight="700">Nov 16 · 02:14 AM</text>
 
-  <rect x="36" y="392" width="72" height="30" rx="8" fill="#6366F1"/>
-  <text x="48" y="411" fill="#FFFFFF" font-family="sans-serif" font-size="11" font-weight="bold">WEEKLY</text>
+  <rect x="196" y="268" width="148" height="46" rx="13" fill="#E1E8F2"/>
+  <text x="208" y="285" fill="#5A6780" font-family="system-ui, sans-serif" font-size="9.5">Snapshot Size</text>
+  <text x="208" y="303" fill="#1D2433" font-family="system-ui, sans-serif" font-size="11.5" font-weight="700">48 KB · SHA-256</text>
 
-  <rect x="116" y="392" width="64" height="30" rx="8" fill="#101726" stroke="#23324F"/>
-  <text x="131" y="411" fill="#94A3B8" font-family="sans-serif" font-size="11">DAILY</text>
+  <!-- Backup Now Button -->
+  <rect x="36" y="324" width="256" height="38" rx="14" fill="#3B82F6"/>
+  <text x="164" y="347" fill="#FFFFFF" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12.5" font-weight="700">Backup Now</text>
+  <rect x="302" y="324" width="42" height="38" rx="14" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <path d="M316 343a7 7 0 0 1 12-4M330 343a7 7 0 0 1-12 4" fill="none" stroke="#3B82F6" stroke-width="1.8" stroke-linecap="round"/>
 
-  <rect x="188" y="392" width="80" height="30" rx="8" fill="#101726" stroke="#23324F"/>
-  <text x="200" y="411" fill="#94A3B8" font-family="sans-serif" font-size="11">MONTHLY</text>
+  <!-- Smart Night-Time Schedule Card -->
+  <rect x="20" y="388" width="340" height="170" rx="22" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <rect x="36" y="404" width="34" height="34" rx="10" fill="#F5F8FC" filter="url(#neuRaisedSm)"/>
+  <path d="M57 422a6 6 0 1 1-6-6 4.5 4.5 0 0 0 6 6z" fill="none" stroke="#6366F1" stroke-width="1.7"/>
+  <text x="80" y="419" fill="#1D2433" font-family="system-ui, sans-serif" font-size="14" font-weight="700">Smart Night-Time Backup</text>
+  <text x="80" y="434" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10">WorkManager · 12:00 AM – 5:00 AM local</text>
 
-  <rect x="276" y="392" width="54" height="30" rx="8" fill="#101726" stroke="#23324F"/>
-  <text x="292" y="411" fill="#94A3B8" font-family="sans-serif" font-size="11">OFF</text>
+  <!-- Window Pills -->
+  <rect x="36" y="450" width="308" height="34" rx="12" fill="#E1E8F2"/>
+  <rect x="40" y="454" width="98" height="26" rx="9" fill="#EDF2F8" filter="url(#neuRaisedSm)"/>
+  <text x="89" y="471" fill="#3B82F6" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" font-weight="700">12–5 AM</text>
+  <text x="190" y="471" fill="#5A6780" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">10P–3A</text>
+  <text x="292" y="471" fill="#5A6780" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11">2–7 AM</text>
 
-  <!-- Restore Wizard Preview Card -->
-  <rect x="20" y="458" width="340" height="214" rx="16" fill="#101726" stroke="#38BDF8" stroke-width="1.5"/>
-  <text x="36" y="484" fill="#38BDF8" font-family="sans-serif" font-size="14" font-weight="bold">🛡️ Restore Wizard &amp; Conflict Resolution</text>
-  <text x="36" y="506" fill="#F8FAFC" font-family="sans-serif" font-size="11">Package: AuraNotes v1.0 · 4 Notes · 9 Categories</text>
-  <line x1="36" y1="518" x2="344" y2="518" stroke="#23324F"/>
+  <text x="36" y="508" fill="#1D2433" font-family="system-ui, sans-serif" font-size="12" font-weight="600">Wi-Fi Only · While Charging · Idle</text>
+  <text x="36" y="524" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5">Auto-queues offline changes &amp; retries cleanly</text>
+  <rect x="300" y="498" width="44" height="24" rx="12" fill="#3B82F6"/>
+  <circle cx="332" cy="510" r="9" fill="#FFFFFF"/>
 
-  <circle cx="46" cy="540" r="6" fill="#6366F1"/>
-  <text x="62" y="544" fill="#F8FAFC" font-family="sans-serif" font-size="12" font-weight="bold">Merge (Recommended)</text>
-  <text x="62" y="560" fill="#94A3B8" font-family="sans-serif" font-size="10">Keep existing notes, add new ones safely</text>
+  <!-- Cloud Snapshots + Conflict-Safe Restore Preview -->
+  <rect x="20" y="574" width="340" height="96" rx="22" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <text x="36" y="600" fill="#1D2433" font-family="system-ui, sans-serif" font-size="13.5" font-weight="700">Cloud Restore &amp; Conflict Wizard</text>
+  <text x="36" y="619" fill="#22C55E" font-family="system-ui, sans-serif" font-size="11" font-weight="600">SHA-256 Verified · Auto Pre-Restore Snapshot</text>
+  <text x="36" y="638" fill="#5A6780" font-family="system-ui, sans-serif" font-size="11">Smart Merge (Cloud / Local / Both) · Keep Both · Replace</text>
 
-  <circle cx="46" cy="584" r="6" fill="none" stroke="#94A3B8" stroke-width="1.5"/>
-  <text x="62" y="588" fill="#F8FAFC" font-family="sans-serif" font-size="12">Keep Both (Generate New UUIDs)</text>
-
-  <circle cx="46" cy="618" r="6" fill="none" stroke="#94A3B8" stroke-width="1.5"/>
-  <text x="62" y="622" fill="#F8FAFC" font-family="sans-serif" font-size="12">Clean Replace (Auto Pre-Restore Snapshot)</text>
-
-  <!-- Bottom Navigation Bar -->
-  <rect x="4" y="690" width="372" height="66" rx="20" fill="#101726"/>
-  <text x="43" y="744" fill="#94A3B8" font-family="sans-serif" font-size="11">Notes</text>
-  <text x="135" y="744" fill="#94A3B8" font-family="sans-serif" font-size="11">Vault</text>
-  <rect x="206" y="700" width="68" height="28" rx="14" fill="#1E1B4B"/>
-  <text x="218" y="744" fill="#818CF8" font-family="sans-serif" font-size="11" font-weight="bold">Backups</text>
-  <text x="305" y="744" fill="#94A3B8" font-family="sans-serif" font-size="11">Settings</text>
+  <!-- Floating Neumorphic Bottom Dock -->
+  <rect x="18" y="684" width="344" height="58" rx="26" fill="#EDF2F8" filter="url(#neuRaised)"/>
+  <text x="48" y="728" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5">Library</text>
+  <text x="134" y="728" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5">Media</text>
+  <rect x="190" y="691" width="84" height="44" rx="19" fill="#E1E8F2" stroke="#3B82F6" stroke-opacity="0.25"/>
+  <text x="232" y="728" fill="#3B82F6" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10.5" font-weight="700">Backups</text>
+  <text x="296" y="728" fill="#5A6780" font-family="system-ui, sans-serif" font-size="10.5">Settings</text>
 </svg>
